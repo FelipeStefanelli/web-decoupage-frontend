@@ -14,7 +14,13 @@ const HeaderDecoupagePreview = ({ contentRef, data, projectName, exportDate }) =
       for (const timecode of data?.timecodes || []) {
         const url = `${apiUrl ? apiUrl : 'http://localhost:4000'}${timecode.imageUrl}`;
         try {
-          const res = await fetch(url);
+          const res = await fetch(url, {
+            method: 'GET',
+            headers: {
+                'ngrok-skip-browser-warning': '1',
+                'Accept': 'application/json'
+            }
+          });
           const blob = await res.blob();
           const reader = new FileReader();
           const base64 = await new Promise((resolve) => {

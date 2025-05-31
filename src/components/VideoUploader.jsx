@@ -195,7 +195,7 @@ const VideoUploader = () => {
 
   const uploadTimecode = async (file, newTimecode) => {
     const fileContent = await fileToBase64(file);
-    const response = await fetch(`${apiUrl ? apiUrl : 'http://localhost:4000'}/api?projectName=${projectName}&ngrok-skip-browser-warning=1`, {
+    const response = await fetch(`${apiUrl ? apiUrl : 'http://localhost:4000'}/api?projectName=${projectName}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ fileContent, timecode: newTimecode }),

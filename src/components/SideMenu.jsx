@@ -18,7 +18,13 @@ export default function SideMenu() {
 
   const fetchBackups = async () => {
     try {
-      const response = await fetch(`${apiUrl ? apiUrl : 'http://localhost:4000'}/api/backups`);
+      const response = await fetch(`${apiUrl ? apiUrl : 'http://localhost:4000'}/api/backups`, {
+          method: 'GET',
+          headers: {
+              'ngrok-skip-browser-warning': '1',
+              'Accept': 'application/json'
+          }
+      });
       const data = await response.json();
       if (!response.ok) throw new Error(data.error);
       console.log(data.backups)

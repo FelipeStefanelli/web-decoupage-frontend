@@ -33,7 +33,13 @@ export const VisibilityProvider = ({ children }) => {
   
     async function validateProjectName(name) {
       try {
-        const res = await fetch(`${apiUrl ? apiUrl : 'http://localhost:4000'}/api/backups`);
+        const res = await fetch(`${apiUrl ? apiUrl : 'http://localhost:4000'}/api/backups`, {
+            method: 'GET',
+            headers: {
+                'ngrok-skip-browser-warning': '1',
+                'Accept': 'application/json'
+            }
+        });
         const data = await res.json();
         const exists = data.backups.some(b => b.name === name);
   

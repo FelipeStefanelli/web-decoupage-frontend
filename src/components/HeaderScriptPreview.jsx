@@ -17,7 +17,13 @@ const HeaderScriptPreview = ({ contentRef, data, projectName, exportDate, views 
           if (!tc.imageUrl) continue;
           const url = `${apiUrl ? apiUrl : 'http://localhost:4000'}${tc.imageUrl}`;
           try {
-            const res = await fetch(url);
+            const res = await fetch(url, {
+              method: 'GET',
+              headers: {
+                  'ngrok-skip-browser-warning': '1',
+                  'Accept': 'application/json'
+              }
+            });
             const blob = await res.blob();
             const reader = new FileReader();
             const base64 = await new Promise((resolve) => {
