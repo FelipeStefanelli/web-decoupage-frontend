@@ -45,7 +45,7 @@ const HeaderScriptPreview = ({ contentRef, data, projectName, exportDate, views 
     loadImages();
     setTimeout(() => {
       generatePreview();
-    }, 500);
+    }, 1000);
   }, [data]);
   
 

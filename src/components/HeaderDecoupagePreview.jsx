@@ -42,7 +42,7 @@ const HeaderDecoupagePreview = ({ contentRef, data, projectName, exportDate }) =
     loadImagesAsBase64();
     setTimeout(() => {
       generatePreview();
-    }, 500);
+    }, 1000);
   }, [data]);
 
   // Gera o preview do PDF a partir do conteúdo referenciado por contentRef
