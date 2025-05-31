@@ -1,16 +1,18 @@
 import React, { useEffect, useState } from "react";
 import Image from "@/components/Image";
 import { formatTimecode } from "@/utils/utils";
+import { useVisibility } from '@/contexts/VisibilityContext';
 
 const HeaderDecoupagePreview = ({ contentRef, data, projectName, exportDate }) => {
   const [base64Map, setBase64Map] = useState({});
+  const { apiUrl } = useVisibility();
 
   useEffect(() => {
     console.log(data)
     const loadImagesAsBase64 = async () => {
       const map = {};
       for (const timecode of data?.timecodes || []) {
-        const url = `http://localhost:4000${timecode.imageUrl}`;
+        const url = `${apiUrl ? apiUrl : 'http://localhost:4000'}${timecode.imageUrl}`;
         try {
           const res = await fetch(url);
           const blob = await res.blob();

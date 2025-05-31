@@ -16,7 +16,7 @@ export default function Header(props) {
     const [showPreview, setshowPreview] = useState(null);
     const [pdfController, setPdfController] = useState(null);
 
-    const { views, projectName } = useVisibility();
+    const { views, projectName, apiUrl } = useVisibility();
 
     const contentRef = useRef(null);
 
@@ -67,7 +67,7 @@ export default function Header(props) {
         }
         // Tenta criar backup no servidor
         try {
-            const response = await fetch('http://localhost:4000/api/backups', {
+            const response = await fetch(`${apiUrl ? apiUrl : 'http://localhost:4000'}/api/backups`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ fileName: projectName })
@@ -96,7 +96,7 @@ export default function Header(props) {
     };
 
     const openModal = async () => {
-        const response = await fetch(`http://localhost:4000/api?projectName=${projectName}`);
+        const response = await fetch(`${apiUrl ? apiUrl : 'http://localhost:4000'}/api?projectName=${projectName}`);
         const data = await response.json();
         setData(data);
         setModalVisible(true);

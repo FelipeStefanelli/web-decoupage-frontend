@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import Image from '@/components/Image';
 import { useVisibility } from '@/contexts/VisibilityContext';
 import { toast } from 'react-toastify';
@@ -8,15 +8,17 @@ export default function SideMenu() {
   const [backups, setBackups] = useState([]);
   const [isCreatingNewProject, setIsCreatingNewProject] = useState(false);
   const [newProjectName, setNewProjectName] = useState('');
-  const { projectName, setProjectName, setChangeProject } = useVisibility();
+  const { projectName, setProjectName, setChangeProject, apiUrl, setApiUrl } = useVisibility();
 
   useEffect(() => {
+    const apiUrlStorage = localStorage.getItem("api-url");
+    apiUrlStorage && setApiUrl(apiUrlStorage);
     fetchBackups();
   }, []);
 
   const fetchBackups = async () => {
     try {
-      const response = await fetch('http://localhost:4000/api/backups');
+      const response = await fetch(`${apiUrl ? apiUrl : 'http://localhost:4000'}/api/backups`);
       const data = await response.json();
       if (!response.ok) throw new Error(data.error);
       console.log(data.backups)
@@ -33,7 +35,7 @@ export default function SideMenu() {
   const deleteBackup = async (backupName) => {
     if (!window.confirm(`Deseja realmente deletar o backup "${backupName}"?`)) return;
     try {
-      const res = await fetch(`http://localhost:4000/api/backups/${backupName}`, { method: 'DELETE' });
+      const res = await fetch(`${apiUrl ? apiUrl : 'http://localhost:4000'}/api/backups/${backupName}`, { method: 'DELETE' });
       if (res.ok) {
         toast.success('Backup deletado com sucesso!');
         let provProjectName = localStorage.getItem('project-name');
@@ -59,7 +61,7 @@ export default function SideMenu() {
     }
 
     try {
-      const res = await fetch(`http://localhost:4000/api/reset?projectName=${newProjectName}`, { method: 'POST' });
+      const res = await fetch(`${apiUrl ? apiUrl : 'http://localhost:4000'}/api/reset?projectName=${newProjectName}`, { method: 'POST' });
       const result = await res.json();
       if (result.success) {
         setProjectName(newProjectName);
@@ -104,7 +106,7 @@ export default function SideMenu() {
       form.append('backup', file);  // só o arquivo ZIP
 
       try {
-        const res = await fetch('http://localhost:4000/api/importFolder', {
+        const res = await fetch(`${apiUrl ? apiUrl : 'http://localhost:4000'}/api/importFolder`, {
           method: 'POST',
           body: form
         });
@@ -128,7 +130,7 @@ export default function SideMenu() {
     fileInput.click();
   };
   const importProject = async (name) => {
-    const res = await fetch('http://localhost:4000/api/import', {
+    const res = await fetch(`${apiUrl ? apiUrl : 'http://localhost:4000'}/api/import`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ fileName: name }),
@@ -143,6 +145,19 @@ export default function SideMenu() {
       toast.success('Importado com sucesso');
     }
   };
+  const pasteFromClipboard = useCallback(async () => {
+    if (!navigator.clipboard?.readText) {
+      console.warn('Clipboard API não suportada neste navegador.')
+      return
+    }
+    try {
+      const text = await navigator.clipboard.readText();
+      setApiUrl(text);
+      localStorage.setItem('api-url', text);
+    } catch (err) {
+      console.error('Falha ao colar do clipboard:', err);
+    }
+  }, []);
   return (
     <div
       style={{
@@ -340,6 +355,43 @@ export default function SideMenu() {
                   </li>
                 ))}
               </ul>
+              <div style={{ display: 'flex', alignItems: 'center', marginTop: 'calc(100% - 37px)', }}>
+                <span style={{ fontSize: '14px' }}>API:</span>
+                <input
+                  disabled
+                  value={apiUrl}
+                  onChange={(e) => {
+                    localStorage.setItem("api-url", e.target.value)
+                    setApiUrl(e.target.value);
+                  }}
+                  style={{
+                    width: '100%',
+                    padding: '8px',
+                    fontSize: '12px',
+                    border: '1px solid #ccc',
+                    borderRadius: '4px',
+                  }}
+                />
+                <Image
+                  src="/paste.svg"
+                  alt="Colar"
+                  width={24}
+                  height={24}
+                  style={{ marginLeft: '12px', cursor: 'pointer', opacity: 0.7 }}
+                  onClick={() => pasteFromClipboard()}
+                />
+                <Image
+                  src="/trash.svg"
+                  alt="Excluir"
+                  width={24}
+                  height={24}
+                  style={{ marginLeft: '12px', cursor: 'pointer', opacity: 0.7 }}
+                  onClick={() => {
+                    setApiUrl('');
+                    localStorage.removeItem("api-url")
+                  }}
+                />
+              </div>
             </>
           )}
         </div>

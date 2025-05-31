@@ -31,7 +31,7 @@ const VideoUploader = () => {
   const imageInputRef = useRef(null);
   const fileInputRef = useRef(null);
 
-  const { projectName, setChangeProject } = useVisibility();
+  const { projectName, setChangeProject, apiUrl } = useVisibility();
 
   const handleVideoChange = async (event) => {
     const file = event.target.files?.[0];
@@ -63,7 +63,7 @@ const VideoUploader = () => {
       const form = new FormData();
       form.append('video', file);
 
-      const res = await fetch('http://localhost:4000/api/transcribe-video', {
+      const res = await fetch(`${apiUrl ? apiUrl : 'http://localhost:4000'}/api/transcribe-video`, {
         method: 'POST',
         body: form
       });
@@ -195,7 +195,7 @@ const VideoUploader = () => {
 
   const uploadTimecode = async (file, newTimecode) => {
     const fileContent = await fileToBase64(file);
-    const response = await fetch(`http://localhost:4000/api?projectName=${projectName}`, {
+    const response = await fetch(`${apiUrl ? apiUrl : 'http://localhost:4000'}/api?projectName=${projectName}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ fileContent, timecode: newTimecode }),
@@ -210,7 +210,7 @@ const VideoUploader = () => {
       form.append('video', file);
       form.append('format', format);
 
-      const res = await fetch('http://localhost:4000/api/convert-video', {
+      const res = await fetch(`${apiUrl ? apiUrl : 'http://localhost:4000'}/api/convert-video`, {
         method: 'POST',
         body: form
       });
@@ -248,7 +248,7 @@ const VideoUploader = () => {
       form.append('video', file);
       form.append('format', format);
 
-      const res = await fetch('http://localhost:4000/api/extract-audio', {
+      const res = await fetch(`${apiUrl ? apiUrl : 'http://localhost:4000'}/api/extract-audio`, {
         method: 'POST',
         body: form
       });

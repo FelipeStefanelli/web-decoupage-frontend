@@ -26,13 +26,14 @@ export const VisibilityProvider = ({ children }) => {
   const [projectName, setProjectName] = useState(localStorage.getItem('project-name'));
   const [isImportedProject, setIsImportedProject] = useState(false);
   const [changeProject, setChangeProject] = useState(false);
+  const [apiUrl, setApiUrl] = useState('');
 
   useEffect(() => {
     const savedName = localStorage.getItem('project-name');
   
     async function validateProjectName(name) {
       try {
-        const res = await fetch('http://localhost:4000/api/backups');
+        const res = await fetch(`${apiUrl ? apiUrl : 'http://localhost:4000'}/api/backups`);
         const data = await res.json();
         const exists = data.backups.some(b => b.name === name);
   
@@ -63,7 +64,20 @@ export const VisibilityProvider = ({ children }) => {
   };
 
   return (
-    <VisibilityContext.Provider value={{ views, toggleView, projectName, setProjectName, isImportedProject, setIsImportedProject, changeProject, setChangeProject }}>
+    <VisibilityContext.Provider 
+      value={{ 
+        views,
+        toggleView,
+        projectName,
+        setProjectName,
+        isImportedProject,
+        setIsImportedProject,
+        changeProject,
+        setChangeProject,
+        apiUrl,
+        setApiUrl
+      }}
+    >
       {children}
     </VisibilityContext.Provider>
   );

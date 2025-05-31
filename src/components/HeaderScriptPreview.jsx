@@ -3,17 +3,19 @@ import Image from '@/components/Image';
 import ScriptInput from '@/components/ScriptInput';
 import { formatTimecode } from '@/utils/utils';
 import html2pdf from 'html2pdf.js'
+import { useVisibility } from '@/contexts/VisibilityContext';
 
 const HeaderScriptPreview = ({ contentRef, data, projectName, exportDate, views }) => {
   const [previewUrl, setPreviewUrl] = useState(null)
   const [base64Map, setBase64Map] = useState({});
+  const { apiUrl } = useVisibility();
   useEffect(() => {
     const loadImages = async () => {
       const map = {};
       for (const scene of data?.script || []) {
         for (const tc of scene.timecodes || []) {
           if (!tc.imageUrl) continue;
-          const url = `http://localhost:4000${tc.imageUrl}`;
+          const url = `${apiUrl ? apiUrl : 'http://localhost:4000'}${tc.imageUrl}`;
           try {
             const res = await fetch(url);
             const blob = await res.blob();
