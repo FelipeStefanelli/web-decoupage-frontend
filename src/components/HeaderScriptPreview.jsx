@@ -6,10 +6,13 @@ import html2pdf from 'html2pdf.js'
 import { useVisibility } from '@/contexts/VisibilityContext';
 
 const HeaderScriptPreview = ({ contentRef, data, projectName, exportDate, views }) => {
-  const [previewUrl, setPreviewUrl] = useState(null)
+  const [previewUrl, setPreviewUrl] = useState(null);
   const [base64Map, setBase64Map] = useState({});
+  const [loading, setLoading] = useState(false);
+
   const { apiUrl } = useVisibility();
   useEffect(() => {
+    setLoading(true);
     const loadImages = async () => {
       const map = {};
       for (const scene of data?.script || []) {
@@ -32,6 +35,7 @@ const HeaderScriptPreview = ({ contentRef, data, projectName, exportDate, views 
             });
             map[tc.id] = base64;
           } catch (e) {
+            setLoading(false);
             console.warn("Erro carregando imagem", url, e);
           }
         }
@@ -51,8 +55,7 @@ const generatePreview = useCallback(async () => {
     const element = contentRef.current
     const opt = {
       html2canvas: { scale: 2 },
-      jsPDF: { unit: 'pt', format: 'a4', orientation: 'portrait' },
-      pagebreak: { mode: ['css','legacy'], before: ['.page-break-avoid'], avoid: ['.page-break-avoid'] }
+      jsPDF: { unit: 'pt', format: 'a4', orientation: 'portrait' }
     }
 
     // gera o blob em vez de salvar direto
@@ -64,33 +67,29 @@ const generatePreview = useCallback(async () => {
 
     const url = URL.createObjectURL(pdfBlob)
     setPreviewUrl(url)
+    setLoading(false);
     // libera URL antiga quando desmontar
     return () => previewUrl && URL.revokeObjectURL(previewUrl)
-  }, [contentRef])
-  const changeScene = (script, field, isValueChange, value) => {
-      if (isValueChange) {
-          script[field] = value;
-          updateTimecode(null, 'script', script);
-      } else {
-          const hasField = script.activeFields.includes(field);
-          if (hasField) {
-              script.activeFields = script.activeFields.filter(item => item !== field)
-          } else {
-              script.activeFields.push(field);
-          }
-      }
-      updateTimecode(null, 'script', script);
-  };
+  }, [contentRef]);
+
   return (
-    <>
-      {previewUrl && (
-        <iframe
-          src={previewUrl}
-          title="Preview do PDF"
-          style={{ width: '100%', height: '80vh', border: 'none' }}
-        />
-      )}
-      <div ref={contentRef} className="page-break-avoid">
+    <div style={{ width: '100%', height: 'calc(100vh - 220px)', overflow: 'hidden' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%', height: '100%' }}>
+        {loading ? 
+          <Image src="/loading.svg" alt="Carregando" width={48} height={48} />
+          :
+          <>
+            {previewUrl && (
+              <iframe
+                src={previewUrl}
+                title="Preview do PDF"
+                style={{ width: '100%', height: '100%', border: 'none' }}
+              />
+            )}
+          </>
+        }
+      </div>
+      <div ref={contentRef}>
         <div style={{ padding: '12px 8px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
           <span style={{ fontSize: '18px' }}>ROTEIRO</span>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', border: '1px solid rgb(180, 180, 180)', borderRadius: '8px' }}>
@@ -112,7 +111,7 @@ const generatePreview = useCallback(async () => {
                     {script.activeFields.includes('description') && views['description-view'] === 'show' && (
                       <div style={inputBoxStyle}>
                         <Image src="/description-active.svg" alt="Descrição" width={18} height={18} style={iconStyle} />
-                        <ScriptInput readOnly placeholder="Descrição" value={script.description} onChange={(value) => changeScene(script, 'description', true, value)} script={script} />
+                        <ScriptInput readOnly placeholder="Descrição" value={script.description} onChange={() => {}} script={script} />
                       </div>
                     )}
                     {script.activeFields.includes('takes') && views['takes-view'] === 'show' && renderTakes(script, id, base64Map)}
@@ -121,13 +120,13 @@ const generatePreview = useCallback(async () => {
                     {script.activeFields.includes('audio') && views['audio-view'] === 'show' && (
                       <div style={inputBoxStyle}>
                         <Image src="/A-active.svg" alt="Áudio" width={18} height={18} style={iconStyle} />
-                        <ScriptInput readOnly placeholder="Áudio" value={script.audio} onChange={(value) => changeScene(script, 'audio', true, value)} script={script} />
+                        <ScriptInput readOnly placeholder="Áudio" value={script.audio} onChange={() => {}} script={script} />
                       </div>
                     )}
                     {script.activeFields.includes('locution') && views['locution-view'] === 'show' && (
                       <div style={inputBoxStyle}>
                         <Image src="/locution-active.svg" alt="Locução" width={18} height={18} style={iconStyle} />
-                        <ScriptInput readOnly placeholder="Locução" value={script.locution} onChange={(value) => changeScene(script, 'locution', true, value)} script={script} />
+                        <ScriptInput readOnly placeholder="Locução" value={script.locution} onChange={() => {}} script={script} />
                       </div>
                     )}
                     {script.activeFields.includes('audios') && views['audios-view'] === 'show' && renderAudios(script, id)}
@@ -139,7 +138,7 @@ const generatePreview = useCallback(async () => {
           ))}
         </div>
       </div>
-    </>
+    </div>
   );
 };
 

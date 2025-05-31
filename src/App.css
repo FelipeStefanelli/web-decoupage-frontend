@@ -127,13 +127,6 @@
   background: rgb(255, 180, 180, 0.01);
 }
 
-.page-break-avoid, 
-.page-break-avoid {
-  display: block !important;           /* garante tratamento como bloco */
-  break-inside: avoid-page !important; /* para navegadores modernos */
-  page-break-inside: avoid !important; /* fallback legado */
-}
-
 @media (max-width: 1024px) {
   .project-name-display {
     display: none;

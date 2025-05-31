@@ -5,6 +5,7 @@ import TimecodeInput from "./TimecodeInput";
 import TimecodeType from "./TimecodeType";
 import ReactStars from "react-stars";
 import { useVisibility } from '@/contexts/VisibilityContext';
+import { wrap } from 'framer-motion';
 
 const TimecodeCard = ({ id, timecode, updateTimecode, setActiveMenu, activeMenu, ratingChanged, type, views, cardType, projectName, fetchTimecodes, setIsDraggingOverTextarea }) => {
     const { apiUrl } = useVisibility();
@@ -61,6 +62,7 @@ const TimecodeCard = ({ id, timecode, updateTimecode, setActiveMenu, activeMenu,
                         alignItems: 'center',
                         justifyContent: 'center',
                         width: '100%',
+                        minWidth: '100%',
                         backgroundColor: 'rgb(54, 54, 54)',
                         borderTopLeftRadius: '4px',
                         borderTopRightRadius: '4px',
@@ -138,7 +140,7 @@ const TimecodeCard = ({ id, timecode, updateTimecode, setActiveMenu, activeMenu,
             }
             {type !== 'AV-audio' &&
                 <>
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '2px', padding: '0px 12px', fontSize: '10px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '2px', padding: '8px 12px 4px 12px', fontSize: '9px' }}>
                         <p
                             style={{
                                 borderRadius: '2px',
@@ -171,8 +173,8 @@ const TimecodeCard = ({ id, timecode, updateTimecode, setActiveMenu, activeMenu,
                         ·
                         <p
                             style={{
-                                borderRadius: '2px',
-                                padding: '2px',
+                                borderRadius: '4px',
+                                padding: '4px',
                                 backgroundColor: 'rgb(18, 14, 35)',
                                 color: 'white',
                                 fontWeight: '600',
@@ -203,7 +205,7 @@ const TimecodeCard = ({ id, timecode, updateTimecode, setActiveMenu, activeMenu,
                             height={18}
                             style={{ width: "18px", height: "18px", cursor: "pointer" }}
                             onClick={async () => {
-                                const textContent = timecode.id.split('-')[0] + '-' + timecode.id.split('-')[1] + '-' + timecode.id.split('-')[2] + '-' + timecode.id.split('-')[3];
+                                const textContent = timecode.videoName;
                                 try {
                                     await navigator.clipboard.writeText(textContent); // Usando a Clipboard API para copiar o texto
                                     alert('Texto copiado para a área de transferência!');

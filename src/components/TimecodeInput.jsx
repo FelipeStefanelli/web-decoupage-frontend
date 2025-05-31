@@ -73,7 +73,7 @@ const TimecodeInput = ({
       style={{
         width: 'calc(100% - 30px)',
         height: '32px',
-        margin: '4px 8px 8px 8px',
+        margin: '0px 8px 8px 8px',
         backgroundColor: 'rgb(231, 231, 231)',
         padding: '8px 0 8px 12px',
         border: 'none',

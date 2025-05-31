@@ -1,14 +1,17 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import Image from "@/components/Image";
 import { formatTimecode } from "@/utils/utils";
 import { useVisibility } from '@/contexts/VisibilityContext';
+import html2pdf from 'html2pdf.js';
 
 const HeaderDecoupagePreview = ({ contentRef, data, projectName, exportDate }) => {
   const [base64Map, setBase64Map] = useState({});
+  const [previewUrl, setPreviewUrl] = useState(null);
+  const [loading, setLoading] = useState(false);
   const { apiUrl } = useVisibility();
 
   useEffect(() => {
-    console.log(data)
+    setLoading(true);
     const loadImagesAsBase64 = async () => {
       const map = {};
       for (const timecode of data?.timecodes || []) {
@@ -17,8 +20,8 @@ const HeaderDecoupagePreview = ({ contentRef, data, projectName, exportDate }) =
           const res = await fetch(url, {
             method: 'GET',
             headers: {
-                'ngrok-skip-browser-warning': '1',
-                'Accept': 'application/json'
+              'ngrok-skip-browser-warning': '1',
+              'Accept': 'application/json'
             }
           });
           const blob = await res.blob();
@@ -29,35 +32,77 @@ const HeaderDecoupagePreview = ({ contentRef, data, projectName, exportDate }) =
           });
           map[timecode.id] = base64;
         } catch (e) {
+          setLoading(false);
           console.warn(`Erro carregando imagem ${url}`, e);
         }
       }
       setBase64Map(map);
     };
-  
+
     loadImagesAsBase64();
+    setTimeout(() => {
+      generatePreview();
+    }, 500);
   }, [data]);
 
+  // Gera o preview do PDF a partir do conteúdo referenciado por contentRef
+  const generatePreview = useCallback(async () => {
+    if (!contentRef.current) return
+
+    const element = contentRef.current
+    const opt = {
+      html2canvas: { scale: 2 },
+      jsPDF: { unit: 'pt', format: 'a4', orientation: 'portrait' }
+    }
+
+    // gera o blob em vez de salvar direto
+    const pdfBlob = await html2pdf()
+      .from(element)
+      .set(opt)
+      .toPdf()
+      .output('blob')
+
+    const url = URL.createObjectURL(pdfBlob)
+    setPreviewUrl(url)
+    setLoading(false);
+    // libera URL antiga quando desmontar
+    return () => previewUrl && URL.revokeObjectURL(previewUrl)
+  }, [contentRef]);
+
   const renderFilename = (filename, maxLength = 20) => {
-      if (!filename) return '';
-    
-      const dotIndex = filename.lastIndexOf('.');
-      const hasExtension = dotIndex !== -1;
-      const name = hasExtension ? filename.slice(0, dotIndex) : filename;
-      const ext = hasExtension ? filename.slice(dotIndex) : '';
-    
-      // Se for curto o suficiente, retorna o nome todo
-      if (filename.length <= maxLength) return filename;
-    
-      const allowedNameLength = maxLength - ext.length - 3; // 3 for '...'
-      const shortName = name.slice(0, allowedNameLength);
-    
-      return `${shortName}..${ext}`;
+    if (!filename) return "";
+
+    const dotIndex = filename.lastIndexOf(".");
+    const hasExtension = dotIndex !== -1;
+    const name = hasExtension ? filename.slice(0, dotIndex) : filename;
+    const ext = hasExtension ? filename.slice(dotIndex) : "";
+
+    if (filename.length <= maxLength) return filename;
+
+    const allowedNameLength = maxLength - ext.length - 3;
+    const shortName = name.slice(0, allowedNameLength);
+
+    return `${shortName}..${ext}`;
   };
 
   return (
-    <div ref={contentRef} className="page-break-avoid fade-in">
-      <div style={{ overflow: "auto", maxHeight: "calc(100vh - 200px)" }}>
+    <div style={{ width: '100%', height: 'calc(100vh - 220px)', overflow: 'hidden' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%', height: '100%' }}>
+        {loading ? (
+          <Image src="/loading.svg" alt="Carregando" width={48} height={48} />
+        ) : (
+          <>
+            {previewUrl && (
+              <iframe
+                src={previewUrl}
+                title="Preview do PDF"
+                style={{ width: '100%', height: '100%', border: 'none' }}
+              />
+            )}
+          </>
+        )}
+      </div>
+      <div ref={contentRef}>
         <div>
           <p style={{ margin: "12px 8px", fontSize: "18px" }}>DECUPAGEM</p>
           <div
@@ -101,24 +146,23 @@ const HeaderDecoupagePreview = ({ contentRef, data, projectName, exportDate }) =
                 >
                   <div
                     style={{
-                        position: 'relative',            // <— cria o contexto para os absolutely-positioned
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        width: '100%',
-                        backgroundColor: 'rgb(54, 54, 54)',
-                        borderTopLeftRadius: '4px',
-                        borderTopRightRadius: '4px',
-                        height: '100px',
-                        padding: '16px 0',
-                        overflow: 'hidden'
+                      position: 'relative',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      width: '100%',
+                      backgroundColor: 'rgb(54, 54, 54)',
+                      borderTopLeftRadius: '4px',
+                      borderTopRightRadius: '4px',
+                      height: '100px',
+                      padding: '16px 0',
+                      overflow: 'hidden'
                     }}
                   >
-                    {/* img RECEBE z-index maior para ficar por cima das linhas */}
                     <img
-                        src={base64Map[timecode.id] || `http://localhost:4000${timecode.imageUrl}`}
-                        alt={`Thumbnail at ${timecode.inTime}`}
-                        style={{
+                      src={base64Map[timecode.id] || `http://localhost:4000${timecode.imageUrl}`}
+                      alt={`Thumbnail at ${timecode.inTime}`}
+                      style={{
                         maxHeight: '100px',
                         height: 'auto',
                         width: 'auto',
@@ -131,7 +175,7 @@ const HeaderDecoupagePreview = ({ contentRef, data, projectName, exportDate }) =
                         objectFit: 'cover',
                         position: 'relative',
                         zIndex: 2,
-                        }}
+                      }}
                     />
                   </div>
                   <div
@@ -169,12 +213,12 @@ const HeaderDecoupagePreview = ({ contentRef, data, projectName, exportDate }) =
                             timecode.type === "V"
                               ? "/V-active.svg"
                               : timecode.type === "A"
-                              ? "/A-active.svg"
-                              : timecode.type === "AV"
-                              ? "/AV-active.svg"
-                              : timecode.type === "image"
-                              ? "/image-active.svg"
-                              : ""
+                                ? "/A-active.svg"
+                                : timecode.type === "AV"
+                                  ? "/AV-active.svg"
+                                  : timecode.type === "image"
+                                    ? "/image-active.svg"
+                                    : ""
                           }
                           alt="Type icon"
                           width={18}
@@ -223,24 +267,24 @@ const HeaderDecoupagePreview = ({ contentRef, data, projectName, exportDate }) =
                     </span>
                   </div>
                   <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '8px', width: 'calc(100% - 32px)', padding: '12px 16px 12px 16px' }}>
-                      <p
-                          style={{
-                              fontSize: '10px',
-                              fontWeight: '500',
-                              lineHeight: '12px',
-                              letterSpacing: '0.1px',
-                              textAlign: 'end',
-                              color: 'black',
-                              maxWidth: '160px',
-                              whiteSpace: 'nowrap',
-                              overflow: 'hidden',
-                              textOverflow: 'ellipsis',
-                              margin: 0
-                          }}
-                          title={timecode.videoName}
-                          >
-                          {renderFilename(timecode.videoName)}
-                      </p>
+                    <p
+                      style={{
+                        fontSize: '10px',
+                        fontWeight: '500',
+                        lineHeight: '12px',
+                        letterSpacing: '0.1px',
+                        textAlign: 'end',
+                        color: 'black',
+                        maxWidth: '160px',
+                        whiteSpace: 'nowrap',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        margin: 0
+                      }}
+                      title={timecode.videoName}
+                    >
+                      {renderFilename(timecode.videoName)}
+                    </p>
                   </div>
                 </div>
               </div>

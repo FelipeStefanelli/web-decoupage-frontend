@@ -276,7 +276,7 @@ export default function Header(props) {
                                 flexDirection: 'column',
                                 justifyContent: 'center',
                                 gap: '16px',
-                                width: '80%',
+                                width: '90%',
                             }}
                         >
                             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '24px 0px 12px 0', borderBottom: '2px solid rgb(158, 156, 168)' }}>
@@ -307,17 +307,6 @@ export default function Header(props) {
                                                 height={24}
                                                 style={{ width: "24px", height: "24px", cursor: 'pointer' }}
                                                 onClick={() => setshowPreview(null)}
-                                            />
-                                        </button>
-                                        <button  style={{ all: 'unset', cursor: 'pointer' }}>
-                                            <Image
-                                                aria-hidden
-                                                src="/download.svg"
-                                                alt="Download icon"
-                                                width={24}
-                                                height={24}
-                                                style={{ width: "24px", height: "24px", cursor: 'pointer' }}
-                                                onClick={() => setPdfController(showPreview)}
                                             />
                                         </button>
                                     </div>

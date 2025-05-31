@@ -56,12 +56,12 @@ const HeaderMenuOptions = ({
           <p className="section-title" style={styles.sectionText}>Exportar</p>
         </div>
         {[{
-          label: 'Exportar pasta do projeto', icon: '/export.svg', action: handleExportClick
+          label: 'Exportar projeto', icon: '/export.svg', action: handleExportClick
         }].map((item, idx) => (
           <div key={idx} style={styles.item}>
             <p style={styles.label}>
               <span style={styles.title}>{item.label}</span>
-              <span style={styles.subtitle}>Pasta</span>
+              <span style={styles.subtitle}>ZIP</span>
             </p>
             <Image src={item.icon} alt="Icon" width={24} height={24} style={styles.icon} onClick={item.action} />
           </div>

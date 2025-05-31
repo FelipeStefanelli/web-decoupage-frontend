@@ -251,7 +251,7 @@ export default function SideMenu() {
                   cursor: 'pointer'
                 }}
             >
-                <p style={{ margin: 0, fontSize: '14px' }}>Importar pasta do projeto</p>
+                <p style={{ margin: 0, fontSize: '14px' }}>Importar projeto</p>
             </button>
             {/* Área de nome do projeto */}
             <div style={{ marginBottom: '24px' }}>
