@@ -70,7 +70,7 @@ export default function SideMenu() {
         setNewProjectName('');
         setIsCreatingNewProject(false);
         toast.success('Novo projeto criado com sucesso');
-        await fetchBackups();
+        fetchBackups();
       } else {
         toast.error('Erro ao criar novo projeto');
       }
