@@ -96,7 +96,7 @@ export default function Header(props) {
     };
 
     const openModal = async () => {
-        const response = await fetch(`${apiUrl ? apiUrl : 'http://localhost:4000'}/api?projectName=${projectName}`);
+        const response = await fetch(`${apiUrl ? apiUrl : 'http://localhost:4000'}/api?projectName=${projectName}&ngrok-skip-browser-warning=1`);
         const data = await response.json();
         setData(data);
         setModalVisible(true);

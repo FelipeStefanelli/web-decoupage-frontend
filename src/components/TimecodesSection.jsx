@@ -64,7 +64,7 @@ const TimecodesSection = (props) => {
 
     const fetchTimecodes = async () => {
         setFetchingTimecodes(true);
-        const response = await fetch(`${apiUrl ? apiUrl : 'http://localhost:4000'}/api?projectName=${projectName}`);
+        const response = await fetch(`${apiUrl ? apiUrl : 'http://localhost:4000'}/api?projectName=${projectName}&ngrok-skip-browser-warning=1`);
         const data = await response.json();
         console.log(data)
         if (data) {
@@ -77,7 +77,7 @@ const TimecodesSection = (props) => {
     };
 
     const updateJson = async (updatedTimecodes, updatedScript) => {
-        await fetch(`${apiUrl ? apiUrl : 'http://localhost:4000'}/api?projectName=${projectName}`, {
+        await fetch(`${apiUrl ? apiUrl : 'http://localhost:4000'}/api?projectName=${projectName}&ngrok-skip-browser-warning=1`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -98,7 +98,7 @@ const TimecodesSection = (props) => {
     };
 
     const updateTimecode = async (updatedTimecode, scope = "timecodes", script = null) => {
-        await fetch(`${apiUrl ? apiUrl : 'http://localhost:4000'}/api?projectName=${projectName}`, {
+        await fetch(`${apiUrl ? apiUrl : 'http://localhost:4000'}/api?projectName=${projectName}&ngrok-skip-browser-warning=1`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({

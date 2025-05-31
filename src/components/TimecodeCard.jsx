@@ -9,7 +9,7 @@ import { useVisibility } from '@/contexts/VisibilityContext';
 const TimecodeCard = ({ id, timecode, updateTimecode, setActiveMenu, activeMenu, ratingChanged, type, views, cardType, projectName, fetchTimecodes, setIsDraggingOverTextarea }) => {
     const { apiUrl } = useVisibility();
     const deleteTimecode = async (id) => {
-        const response = await fetch(`${apiUrl ? apiUrl : 'http://localhost:4000'}/api?projectName=${projectName}`, {
+        const response = await fetch(`${apiUrl ? apiUrl : 'http://localhost:4000'}/api?projectName=${projectName}&ngrok-skip-browser-warning=1`, {
             method: 'DELETE',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ id }),
