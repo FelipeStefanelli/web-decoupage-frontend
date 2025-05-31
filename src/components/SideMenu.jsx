@@ -100,37 +100,49 @@ export default function SideMenu() {
   };
 
   const handleImportFolderClick = async () => {
-    // Abre o seletor de arquivos .zip
     const fileInput = document.createElement('input');
     fileInput.type = 'file';
     fileInput.accept = '.zip';
     fileInput.onchange = async () => {
       const file = fileInput.files?.[0];
       if (!file) return;
+      console.log(backups)
+      console.log(file.name)
+      const originalFilename = file.name.replace(/\.zip$/i, '');
 
-      const form = new FormData();
-      form.append('backup', file);  // só o arquivo ZIP
-
-      try {
-        const res = await fetch(`${apiUrl ? apiUrl : 'http://localhost:4000'}/api/importFolder`, {
-          method: 'POST',
-          body: form
-        });
-        const result = await res.json();
-
-        if (res.ok && result.success) {
-          toast.success(result.message || 'Projeto importado com sucesso!');
-          await fetchBackups();  // atualiza lista de backups na UI
-          console.log(result.name)
-          setProjectName(result.name);
-          localStorage.setItem("project-name", result.name);
-          setChangeProject(true);
-        } else {
-          toast.warn(result.message || 'Falha ao importar projeto!');
+      const exists = backups.some(backup => backup.name === originalFilename);
+      if (exists) {
+        const confirmar = window.confirm(
+          `O projeto "${originalFilename}" já existe em seus backups.\n\n` +
+          `Deseja sobrescrever o backup existente?`
+        );
+        if (!confirmar) {
+          return;
         }
-      } catch (err) {
-        console.error('Erro ao importar projeto:', err);
-        toast.error('Erro ao importar projeto');
+        const form = new FormData();
+        form.append('backup', file);  // só o arquivo ZIP
+
+        try {
+          const res = await fetch(`${apiUrl ? apiUrl : 'http://localhost:4000'}/api/importFolder`, {
+            method: 'POST',
+            body: form
+          });
+          const result = await res.json();
+
+          if (res.ok && result.success) {
+            toast.success(result.message || 'Projeto importado com sucesso!');
+            await fetchBackups();  // atualiza lista de backups na UI
+            console.log(result.name)
+            setProjectName(result.name);
+            localStorage.setItem("project-name", result.name);
+            setChangeProject(true);
+          } else {
+            toast.warn(result.message || 'Falha ao importar projeto!');
+          }
+        } catch (err) {
+          console.error('Erro ao importar projeto:', err);
+          toast.error('Erro ao importar projeto');
+        }
       }
     };
     fileInput.click();
