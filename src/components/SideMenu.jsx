@@ -181,6 +181,9 @@ export default function SideMenu() {
       >
         <div
           style={{
+            display:'flex',
+            flexDirection: 'column',
+            justifyContent: 'space-between',
             width: '300px',
             height: '100%',
             backgroundColor: '#fff',
@@ -190,7 +193,8 @@ export default function SideMenu() {
             boxSizing: 'border-box',
           }}
         >
-          {!isCreatingNewProject && (
+          <div>
+            {!isCreatingNewProject && (
             <button
               onClick={() => {
                 setIsCreatingNewProject(true);
@@ -212,188 +216,189 @@ export default function SideMenu() {
             >
               <p style={{ margin: 0, fontSize: '14px' }}>Novo Projeto</p>
             </button>
-          )}
-          <button
-              onClick={handleImportFolderClick}
-              style={{
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                gap: "12px",
-                padding: "12px 0",
-                backgroundColor: "rgba(48, 48, 48, 1)",
-                borderRadius: "8px",
-                color: "white",
-                width: '100%',
-                marginBottom: '24px',
-                cursor: 'pointer'
-              }}
-          >
-              <p style={{ margin: 0, fontSize: '14px' }}>Importar pasta do projeto</p>
-          </button>
-          {/* Área de nome do projeto */}
-          <div style={{ marginBottom: '24px' }}>
-            <p style={{ marginBottom: '12px', fontWeight: 600, color: '#333', fontSize: '14px' }}>{isCreatingNewProject ? 'Digite um nome para o projeto:' : 'Nome do projeto:'}</p>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-              {isCreatingNewProject ? (
-                <div style={{ display: 'flex', flexDirection:'column', gap: '16px', width: '100%' }}>
-                  <input
-                    style={{
-                      width: '100%',
-                      padding: "4px 0",
-                      backgroundColor: "transparent",
-                      borderRadius: "1px",
-                      outline: "none",
-                      color: 'black',
-                      borderTop: 'none',
-                      borderLeft: 'none',
-                      borderRight: 'none',
-                    }}
-                    placeholder="Digite o nome"
-                    value={newProjectName}
-                    onChange={(e) => setNewProjectName(e.target.value)}
-                  />
-                  <button
-                    style={{
-                      border: '1px solid black',
-                      outline: 'none',
-                      backgroundColor: 'transparent',
-                      padding: '6px 0',
-                      fontSize: '14px',
-                      borderRadius: '6px',
-                      cursor: 'pointer'
-                    }}
-                    onClick={handleCreateProject}
-                  >
-                    Criar projeto
-                  </button>
-                  <button
-                    style={{
-                      border: '1px solid rgb(255, 100, 100)',
-                      outline: 'none',
-                      backgroundColor: 'transparent',
-                      padding: '6px 0',
-                      fontSize: '14px',
-                      borderRadius: '6px',
-                      color: 'rgb(255, 100, 100)',
-                      cursor: 'pointer'
-                    }}
-                    onClick={cancelNewProject}
-                  >
-                    Cancelar
-                  </button>
-                </div>
-              ) : (
-                <>
-                  <span style={{ flex: 1, fontSize: '14px', fontWeight: '500', color: '#111' }}>
-                    {projectName || 'Sem projeto'}
-                  </span>
-                </>
-              )}
-            </div>
-          </div>
-
-          {/* Lista de backups (somente se não estiver criando novo projeto) */}
-          {!isCreatingNewProject && (
-            <>
-              <p style={{
-                fontWeight: 'bold',
-                marginBottom: '10px',
-                fontSize: '14px',
-                color: '#c4302b'
-              }}>Projetos Salvos</p>
-
-              <ul style={{ listStyle: 'none', margin: 0, padding: 0 }}>
-                {backups.length === 0 && (
-                  <li style={{ padding: '12px 16px', color: '#777', fontSize: '13px' }}>
-                    Nenhum projeto salvo
-                  </li>
-                )}
-                {backups.map((backup) => (
-                  <li
-                    key={backup.name}
-                    style={{
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      alignItems: 'center',
-                      padding: '10px 12px',
-                      fontSize: '13px',
-                      backgroundColor: backup.name === projectName ? '#ffeaea' : 'transparent',
-                      borderBottom: '1px solid #eee',
-                    }}
-                  >
-                    <span
+            )}
+            <button
+                onClick={handleImportFolderClick}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: "12px",
+                  padding: "12px 0",
+                  backgroundColor: "rgba(48, 48, 48, 1)",
+                  borderRadius: "8px",
+                  color: "white",
+                  width: '100%',
+                  marginBottom: '24px',
+                  cursor: 'pointer'
+                }}
+            >
+                <p style={{ margin: 0, fontSize: '14px' }}>Importar pasta do projeto</p>
+            </button>
+            {/* Área de nome do projeto */}
+            <div style={{ marginBottom: '24px' }}>
+              <p style={{ marginBottom: '12px', fontWeight: 600, color: '#333', fontSize: '14px' }}>{isCreatingNewProject ? 'Digite um nome para o projeto:' : 'Nome do projeto:'}</p>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                {isCreatingNewProject ? (
+                  <div style={{ display: 'flex', flexDirection:'column', gap: '16px', width: '100%' }}>
+                    <input
                       style={{
-                        flex: 1,
-                        whiteSpace: 'nowrap',
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis',
-                        color: backup.name === projectName ? '#c4302b' : '#333'
+                        width: '100%',
+                        padding: "4px 0",
+                        backgroundColor: "transparent",
+                        borderRadius: "1px",
+                        outline: "none",
+                        color: 'black',
+                        borderTop: 'none',
+                        borderLeft: 'none',
+                        borderRight: 'none',
+                      }}
+                      placeholder="Digite o nome"
+                      value={newProjectName}
+                      onChange={(e) => setNewProjectName(e.target.value)}
+                    />
+                    <button
+                      style={{
+                        border: '1px solid black',
+                        outline: 'none',
+                        backgroundColor: 'transparent',
+                        padding: '6px 0',
+                        fontSize: '14px',
+                        borderRadius: '6px',
+                        cursor: 'pointer'
+                      }}
+                      onClick={handleCreateProject}
+                    >
+                      Criar projeto
+                    </button>
+                    <button
+                      style={{
+                        border: '1px solid rgb(255, 100, 100)',
+                        outline: 'none',
+                        backgroundColor: 'transparent',
+                        padding: '6px 0',
+                        fontSize: '14px',
+                        borderRadius: '6px',
+                        color: 'rgb(255, 100, 100)',
+                        cursor: 'pointer'
+                      }}
+                      onClick={cancelNewProject}
+                    >
+                      Cancelar
+                    </button>
+                  </div>
+                ) : (
+                  <>
+                    <span style={{ flex: 1, fontSize: '14px', fontWeight: '500', color: '#111' }}>
+                      {projectName || 'Sem projeto'}
+                    </span>
+                  </>
+                )}
+              </div>
+            </div>
+
+            {/* Lista de backups (somente se não estiver criando novo projeto) */}
+            {!isCreatingNewProject && (
+              <>
+                <p style={{
+                  fontWeight: 'bold',
+                  marginBottom: '10px',
+                  fontSize: '14px',
+                  color: '#c4302b'
+                }}>Projetos Salvos</p>
+
+                <ul style={{ listStyle: 'none', margin: 0, padding: 0 }}>
+                  {backups.length === 0 && (
+                    <li style={{ padding: '12px 16px', color: '#777', fontSize: '13px' }}>
+                      Nenhum projeto salvo
+                    </li>
+                  )}
+                  {backups.map((backup) => (
+                    <li
+                      key={backup.name}
+                      style={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        padding: '10px 12px',
+                        fontSize: '13px',
+                        backgroundColor: backup.name === projectName ? '#ffeaea' : 'transparent',
+                        borderBottom: '1px solid #eee',
                       }}
                     >
-                      {backup.name}
-                    </span>
+                      <span
+                        style={{
+                          flex: 1,
+                          whiteSpace: 'nowrap',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          color: backup.name === projectName ? '#c4302b' : '#333'
+                        }}
+                      >
+                        {backup.name}
+                      </span>
 
-                    {backup.name !== projectName && (
+                      {backup.name !== projectName && (
+                        <Image
+                          src="/import3.svg"
+                          alt="Importar"
+                          width={20}
+                          height={20}
+                          style={{ marginLeft: '8px', cursor: 'pointer', opacity: 0.7 }}
+                          onClick={() => importProject(backup.name)}
+                        />
+                      )}
                       <Image
-                        src="/import3.svg"
-                        alt="Importar"
-                        width={20}
-                        height={20}
-                        style={{ marginLeft: '8px', cursor: 'pointer', opacity: 0.7 }}
-                        onClick={() => importProject(backup.name)}
+                        src="/trash.svg"
+                        alt="Excluir"
+                        width={24}
+                        height={24}
+                        style={{ marginLeft: '12px', cursor: 'pointer', opacity: 0.7 }}
+                        onClick={() => deleteBackup(backup.name)}
                       />
-                    )}
-                    <Image
-                      src="/trash.svg"
-                      alt="Excluir"
-                      width={24}
-                      height={24}
-                      style={{ marginLeft: '12px', cursor: 'pointer', opacity: 0.7 }}
-                      onClick={() => deleteBackup(backup.name)}
-                    />
-                  </li>
-                ))}
-              </ul>
-              <div style={{ display: 'flex', alignItems: 'center', marginTop: 'calc(100% - 37px)', }}>
-                <span style={{ fontSize: '14px' }}>API:</span>
-                <input
-                  disabled
-                  value={apiUrl}
-                  onChange={(e) => {
-                    localStorage.setItem("api-url", e.target.value)
-                    setApiUrl(e.target.value);
-                  }}
-                  style={{
-                    width: '100%',
-                    padding: '8px',
-                    fontSize: '12px',
-                    border: '1px solid #ccc',
-                    borderRadius: '4px',
-                  }}
-                />
-                <Image
-                  src="/paste.svg"
-                  alt="Colar"
-                  width={24}
-                  height={24}
-                  style={{ marginLeft: '12px', cursor: 'pointer', opacity: 0.7 }}
-                  onClick={() => pasteFromClipboard()}
-                />
-                <Image
-                  src="/trash.svg"
-                  alt="Excluir"
-                  width={24}
-                  height={24}
-                  style={{ marginLeft: '12px', cursor: 'pointer', opacity: 0.7 }}
-                  onClick={() => {
-                    setApiUrl('');
-                    localStorage.removeItem("api-url")
-                  }}
-                />
-              </div>
-            </>
-          )}
+                    </li>
+                  ))}
+                </ul>
+              </>
+            )}
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', paddingTop: '16px' }}>
+            <span style={{ fontSize: '14px' }}>API:</span>
+            <input
+              disabled
+              value={apiUrl}
+              onChange={(e) => {
+                localStorage.setItem("api-url", e.target.value)
+                setApiUrl(e.target.value);
+              }}
+              style={{
+                width: '100%',
+                padding: '8px',
+                fontSize: '12px',
+                border: '1px solid #ccc',
+                borderRadius: '4px',
+              }}
+            />
+            <Image
+              src="/paste.svg"
+              alt="Colar"
+              width={24}
+              height={24}
+              style={{ marginLeft: '12px', cursor: 'pointer', opacity: 0.7 }}
+              onClick={() => pasteFromClipboard()}
+            />
+            <Image
+              src="/trash.svg"
+              alt="Excluir"
+              width={24}
+              height={24}
+              style={{ marginLeft: '12px', cursor: 'pointer', opacity: 0.7 }}
+              onClick={() => {
+                setApiUrl('');
+                localStorage.removeItem("api-url")
+              }}
+            />
+          </div>
         </div>
 
         {/* Botão lateral de abrir/fechar */}
