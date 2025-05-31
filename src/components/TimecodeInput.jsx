@@ -79,7 +79,6 @@ const TimecodeInput = ({
         border: 'none',
         outline: 'none',
         resize: 'none',
-        overflow: 'hidden',
         color: 'black',
         fontSize: 13,
         flexGrow: 1,
