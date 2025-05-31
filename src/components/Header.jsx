@@ -63,36 +63,57 @@ export default function Header(props) {
 
     const handleExportClick = async () => {
         if (!projectName) {
-            return toast.warn("Nome do projeto inválido");
-        }
-        // Tenta criar backup no servidor
-        try {
-            const response = await fetch(`${apiUrl ? apiUrl : 'http://localhost:4000'}/api/backups`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ fileName: projectName })
-            });
-            if (response.ok) {
-                toast.success(`Backup do projeto ${projectName} criado com sucesso!`);
-                return;
-            } else {
-                toast.warn("Falha ao criar backup no servidor.");
+            toast.warn("Nome do projeto inválido");
+            return;
             }
-        } catch (error) {
-            console.error("Erro no backup:", error);
-            toast.error("Erro ao criar backup no servidor, exportando somente JSON...");
+
+            try {
+            // Ajuste a base URL do seu servidor (http://localhost:4000, por exemplo)
+            const apiBase = apiUrl ? apiUrl : 'http://localhost:4000';
+            const encodedName = encodeURIComponent(projectName);
+            const url = `${apiBase}/api/backups/download/${encodedName}`;
+
+            const response = await fetch(url, { 
+                method: 'GET',
+                headers: {
+                    'ngrok-skip-browser-warning': '1',
+                }
+            });
+
+            if (!response.ok) {
+                if (response.status === 404) {
+                toast.error(`Backup "${projectName}" não encontrado no servidor.`);
+                } else {
+                toast.error(`Falha ao baixar backup: HTTP ${response.status}`);
+                }
+                return;
+            }
+
+            // Converte em Blob (dados binários do ZIP)
+            const zipBlob = await response.blob();
+
+            // Se o blob não for um ZIP válido, informe
+            if (zipBlob.size < 1000 || zipBlob.type !== 'application/zip') {
+                console.error("Blob inesperado (não era um ZIP válido).");
+                toast.error("Não foi possível obter um ZIP válido do servidor.");
+                return;
+            }
+
+            // Cria URL para download
+            const downloadUrl = URL.createObjectURL(zipBlob);
+            const a = document.createElement('a');
+            a.href = downloadUrl;
+            a.download = `${projectName}.zip`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+
+            URL.revokeObjectURL(downloadUrl);
+            toast.success(`Backup "${projectName}" baixado com sucesso.`);
+            } catch (err) {
+            console.error("Erro ao baixar backup:", err);
+            toast.error("Ocorreu um erro inesperado ao baixar o backup.");
         }
-        // Fallback: exporta apenas JSON local
-        const blob = new Blob([JSON.stringify({ name: projectName })], { type: 'application/json' });
-        const url = URL.createObjectURL(blob);
-        const el = document.createElement('a');
-        el.href = url;
-        el.download = `${projectName}.json`;
-        document.body.appendChild(el);
-        el.click();
-        document.body.removeChild(el);
-        URL.revokeObjectURL(url);
-        toast.success(`Projeto ${projectName} exportado como JSON.`);
     };
 
     const openModal = async () => {
