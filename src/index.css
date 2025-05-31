@@ -1,0 +1,31 @@
+@font-face {
+  font-family: 'GeistMonoVF';
+  src: url('/fonts/GeistMonoVF.woff') format('woff');
+  font-weight: 400;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'GeistVF';
+  src: url('/fonts/GeistVF.woff') format('woff');
+  font-weight: 700;
+  font-style: normal;
+}
+
+body {
+  margin: 0;
+  font-family: 'GeistMonoVF', Arial, Helvetica, sans-serif;
+}
+
+
+button {
+  font-family: 'GeistMonoVF', Arial, Helvetica, sans-serif;
+}
+
+@media print {
+  /* Remove o max-height e o overflow apenas quando for gerar o PDF */
+  .fade-in > div {
+    max-height: none !important;
+    overflow: visible !important;
+  }
+}

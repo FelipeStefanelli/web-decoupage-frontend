@@ -1,0 +1,182 @@
+.page {
+  flex: 1;
+  display: flex;
+  align-items: start;
+}
+
+.grid-container {
+  display: flex;
+  flex-direction: column;
+  width: 60%;
+  gap: 16px;
+}
+
+.grid {
+  display: grid;
+  gap: 12px;
+}
+
+.card {
+  text-align: center;
+  cursor: grab;
+  transition: transform 0.2s, opacity 0.2s;
+}
+
+.card.script {
+}
+
+.card.read-only {
+  cursor:default;
+}
+
+.card.dragging {
+  opacity: 0.1;
+  transform: scale(1.05);
+}
+
+.drop-zone {
+  border: 2px dashed #8a8a8a;
+  background-color: #d3d3d3;
+  transition: width 0.2s, height 0.2s;
+  border-radius: 4px;
+}
+
+.timecode-drop-zone {
+  width: calc(100% - 2px);
+  height: calc(100% - 2px);
+  min-height: 260px;
+}
+
+.script-drop-zone {
+  width: calc(100% - 2px);
+  height: calc(100% - 2px);
+  min-height: 260px;
+}
+
+.audio-drop-zone {
+  width: calc(100% - 2px);
+  height: calc(100% - 2px);
+  min-width: 100px;
+}
+
+.card.hidden {
+  display: none
+}
+
+.section-title {
+  position: relative;
+  display: inline-block;
+}
+
+.section-title::after {
+  content: '';
+  position: absolute;
+  bottom: -5px; /* ajusta a distância da linha */
+  left: 0;
+  width: 24px;  /* ajuste a largura desejada */
+  height: 2px;  /* espessura da linha */
+  background-color: rgb(196, 48, 43); /* ou qualquer cor */
+  border-radius: 2px;
+}
+.section-title-saves {
+  position: relative;
+  display: inline-block;
+}
+
+.section-title-saves::after {
+  content: '';
+  position: absolute;
+  bottom: -4px; /* ajusta a distância da linha */
+  left: 0;
+  width: 24px;  /* ajuste a largura desejada */
+  height: 2px;  /* espessura da linha */
+  background-color: rgb(196, 48, 43); /* ou qualquer cor */
+  border-radius: 2px;
+}
+.project-name-display {
+  position: absolute;
+  top: 0;
+  right: 15vw;
+  height: 77px;
+  display: flex;
+  align-items: center;
+}
+
+.scene-card {
+  border-radius: 8px;
+  border: 1px solid #d0d0d0;
+  background: transparent;
+  transition: border .3s ease, background .3s ease, box-shadow .3s ease;
+}
+
+.scene-card:hover {
+  border: 1px solid rgba(255,122,122,0.3);
+  background: rgba(255,180,180,0.04);
+  box-shadow: 0 0 1px 1px rgba(255,122,122,0.5);
+}
+.scene-header {
+  background: rgb(231, 231, 231);
+  transition: background .3s ease;
+}
+
+.scene-card:hover .scene-header {
+  background: rgb(255, 180, 180, 0.2);
+}
+
+.scene-card:hover .dashed-area {
+  background: rgb(255, 180, 180, 0.01);
+}
+
+.page-break-avoid, 
+.page-break-avoid {
+  display: block !important;           /* garante tratamento como bloco */
+  break-inside: avoid-page !important; /* para navegadores modernos */
+  page-break-inside: avoid !important; /* fallback legado */
+}
+
+@media (max-width: 1024px) {
+  .project-name-display {
+    display: none;
+  }
+}
+
+.fade-in {
+  animation: fadeInUp 0.3s ease-out forwards;
+}
+
+@keyframes fadeInUp {
+  0% {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+
+*::-webkit-scrollbar {
+  width: 8px; /* Largura da barra vertical */
+  height: 8px; /* Altura da barra horizontal */
+}
+
+*::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.05); /* Cor do trilho */
+  border-radius: 4px;
+}
+
+*::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.4); /* Cor do "puxador" */
+  border-radius: 4px;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.6); /* Cor ao passar o mouse */
+}
+
+/* Firefox */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(0, 0, 0, 0.4) rgba(0, 0, 0, 0.05);
+}
