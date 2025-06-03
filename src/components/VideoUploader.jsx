@@ -11,8 +11,9 @@ const VideoUploader = () => {
   const [currentTimecodeOut, setCurrentTimecodeOut] = useState(null);
   const [currentTimecodeImage, setCurrentTimecodeImage] = useState(null);
   const [loading, setLoading] = useState(false);
-  const [videoName, setVideoName] = useState(null);
-  const [videoSrc, setVideoSrc] = useState(undefined);
+  const [mediaName, setMediaName] = useState(null);
+  const [mediaSrc, setMediaSrc] = useState(undefined);
+  const [mediaType, setMediaType] = useState(undefined);
   const [selectedFormat, setSelectedFormat] = useState('mp4');
   const [audioSelectedFormat, setAudioSelectedFormat] = useState('mp3');
   const [originalFilePath, setOriginalFilePath] = useState(null);
@@ -30,34 +31,41 @@ const VideoUploader = () => {
   const videoRef = useRef(null);
   const imageInputRef = useRef(null);
   const fileInputRef = useRef(null);
+  const transcriptionController = useRef(null);
 
   const { projectName, setChangeProject, apiUrl } = useVisibility();
 
   const handleVideoChange = async (event) => {
     const file = event.target.files?.[0];
-  
+
     if (file) {
-      // Revoga o objeto anterior antes de gerar outro
-      if (videoSrc) URL.revokeObjectURL(videoSrc);
+      if (transcriptionController.current) {
+        transcriptionController.current.abort()
+      }
+      if (mediaSrc) URL.revokeObjectURL(mediaSrc);
   
       const isDifferent = file !== originalFilePath;
       if (isDifferent) {
         resetVideoState(); // limpa apenas se for novo
       }
-  
+      const fileType = file.type.startsWith('audio/') ? 'audio' : file.type.startsWith('video/') ? 'video' : undefined;
       const videoURL = URL.createObjectURL(file);
       setOriginalFilePath(file);
-      setVideoSrc(videoURL);
-      setVideoName(file.name);
+      setMediaType(fileType);
+      setMediaSrc(videoURL);
+      setMediaName(file.name);
+
+      const controller = new AbortController();
+      transcriptionController.current = controller;
 
       // Transcreve direto com path do arquivo
-      handleTranscription(file);
+      handleTranscription(file, controller.signal);
     }
   
     fileInputRef.current.value = '';
   };
 
-  const handleTranscription = async (file) => {
+  const handleTranscription = async (file, signal) => {
     setIsLoadingDetails(true);
     try {
       const form = new FormData();
@@ -65,7 +73,8 @@ const VideoUploader = () => {
 
       const res = await fetch(`${apiUrl ? apiUrl : 'http://localhost:4000'}/api/transcribe-video`, {
         method: 'POST',
-        body: form
+        body: form,
+        signal
       });
       const transRes = await res.json();
 
@@ -77,23 +86,33 @@ const VideoUploader = () => {
         toast.error(transRes.error || 'Erro na transcrição');
       }
     } catch (err) {
+      if (err.name === 'AbortError') {
+        console.log('Requisição de transcrição abortada com sucesso.')
+        return
+      }
       console.error(err);
       toast.error('Erro na transcrição');
     } finally {
-      setIsLoadingDetails(false);
+      if (transcriptionController.current && transcriptionController.current.signal === signal) {
+        setIsLoadingDetails(false);
+        transcriptionController.current = null
+      }
     }
   };
 
   const resetVideoState = () => {
-    if (videoSrc) {
-      URL.revokeObjectURL(videoSrc);
+    if (mediaSrc) {
+      URL.revokeObjectURL(mediaSrc);
     }
-  
+    setSegments([]);
+    setTranscriptionTotalTime(null);
+    setShowDetailsModal(false);
     setCurrentTimecodeIn(null);
     setCurrentTimecodeOut(null);
     setCurrentTimecodeImage(null);
-    setVideoSrc(undefined);
-    setVideoName(null);
+    setMediaSrc(undefined);
+    setMediaType(undefined);
+    setMediaName(null);
     setOriginalFilePath(null);
   
     if (videoRef.current) {
@@ -140,7 +159,7 @@ const VideoUploader = () => {
         type: "",
         text: "",
         rating: 0,
-        videoName,
+        mediaName,
       };
 
       try {
@@ -176,7 +195,7 @@ const VideoUploader = () => {
         type: "image",
         text: "",
         rating: 0,
-        videoName: file.name,
+        mediaName: file.name,
       };
   
       const base64Clean = base64.replace(/^data:image\/\w+;base64,/, '');
@@ -385,7 +404,7 @@ const VideoUploader = () => {
           </button>
           <input
             type="file"
-            accept="video/*"
+            accept="video/*,audio/*"
             ref={fileInputRef}
             onChange={handleVideoChange}
             style={{ display: 'none' }}
@@ -447,15 +466,23 @@ const VideoUploader = () => {
           </div>
         </div>
       )}
-      {videoSrc && (
-        <div style={{ padding: '16px' }}>
-          <video ref={videoRef} controls width="100%" crossOrigin="anonymous">
-            <source src={videoSrc} type="video/mp4" />
-            Seu navegador não suporta vídeos.
-          </video>
+      {mediaSrc && (
+        <div style={{ width: 'calc(100% - 32px)', padding: '16px' }}>
+          {mediaType === 'video' &&
+            <video ref={videoRef} controls width="100%" crossOrigin="anonymous">
+              <source src={mediaSrc} type="video/mp4" />
+              Seu navegador não suporta vídeos.
+            </video>
+          }
+          {mediaType === 'audio' && (
+            <audio controls style={{ width: '100%' }}>
+              <source src={mediaSrc} type={originalFilePath.type} />
+              Seu navegador não suporta áudio.
+            </audio>
+          )}
           <div
             style={{
-              width: '80%',
+              width: '100%',
               display: 'flex',
               gap: '0.5rem',
               marginTop: '1rem'
@@ -533,7 +560,7 @@ const VideoUploader = () => {
             }
           </div>
           
-          {videoSrc && (
+          {mediaSrc && (
             <div style={{ marginTop: '1rem', width: '100%' }}>
               <button
                 onClick={() => setShowDetailsModal(true)}
@@ -662,7 +689,7 @@ const VideoUploader = () => {
             </div>
           )}
 
-          {videoSrc && (
+          {mediaSrc && (
             <div style={{ marginTop: '1rem', width: '100%' }}>
               <details style={{ background: '#1e1e1e', borderRadius: '8px', padding: '1rem', marginTop: '1rem' }}>
                 <summary style={{ color: 'white', fontSize: '14px', cursor: 'pointer' }}>
