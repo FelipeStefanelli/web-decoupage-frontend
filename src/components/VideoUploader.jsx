@@ -689,7 +689,7 @@ const VideoUploader = () => {
             </div>
           )}
 
-          {mediaSrc && (
+          {mediaSrc && !isLoadingDetails && (
             <div style={{ marginTop: '1rem', width: '100%' }}>
               <details style={{ background: '#1e1e1e', borderRadius: '8px', padding: '1rem', marginTop: '1rem' }}>
                 <summary style={{ color: 'white', fontSize: '14px', cursor: 'pointer' }}>
@@ -704,50 +704,52 @@ const VideoUploader = () => {
                   flexWrap: 'wrap'
                 }}>
                   {/* Bloco de conversão de vídeo */}
-                  <div style={{ flex: '1 1 45%', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                    <select
-                      value={selectedFormat}
-                      onChange={(e) => setSelectedFormat(e.target.value)}
-                      style={{
-                        padding: '8px 12px',
-                        borderRadius: '6px',
-                        backgroundColor: '#333',
-                        color: 'white',
-                        border: '1px solid #555',
-                      }}
-                    >
-                      <option value="mp4">MP4</option>
-                      <option value="mxf">MXF</option>
-                      <option value="avi">AVI</option>
-                      <option value="mov">MOV</option>
-                      <option value="webm">WEBM</option>
-                      <option value="mkv">MKV</option>
-                    </select>
+                  {mediaType === "video" &&
+                    <div style={{ flex: '1 1 45%', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                      <select
+                        value={selectedFormat}
+                        onChange={(e) => setSelectedFormat(e.target.value)}
+                        style={{
+                          padding: '8px 12px',
+                          borderRadius: '6px',
+                          backgroundColor: '#333',
+                          color: 'white',
+                          border: '1px solid #555',
+                        }}
+                      >
+                        <option value="mp4">MP4</option>
+                        <option value="mxf">MXF</option>
+                        <option value="avi">AVI</option>
+                        <option value="mov">MOV</option>
+                        <option value="webm">WEBM</option>
+                        <option value="mkv">MKV</option>
+                      </select>
 
-                    <button
-                      onClick={() => convertVideo(originalFilePath, selectedFormat)}
-                      disabled={isExporting}
-                      style={{
-                        padding: '8px 16px',
-                        borderRadius: '6px',
-                        backgroundColor: isExporting ? '#a42a24' : '#c4302b',
-                        color: 'white',
-                        border: 'none',
-                        cursor: isExporting ? 'not-allowed' : 'pointer',
-                        fontWeight: 600,
-                        display: 'flex',
-                        justifyContent: 'center',
-                        alignItems: 'center',
-                        gap: '8px'
-                      }}
-                    >
-                      {isExporting ? (
-                        <Image src="/white-loading.svg" alt="Loading" width={18} height={18} />
-                      ) : (
-                        'Converter Vídeo'
-                      )}
-                    </button>
-                  </div>
+                      <button
+                        onClick={() => convertVideo(originalFilePath, selectedFormat)}
+                        disabled={isExporting}
+                        style={{
+                          padding: '8px 16px',
+                          borderRadius: '6px',
+                          backgroundColor: isExporting ? '#a42a24' : '#c4302b',
+                          color: 'white',
+                          border: 'none',
+                          cursor: isExporting ? 'not-allowed' : 'pointer',
+                          fontWeight: 600,
+                          display: 'flex',
+                          justifyContent: 'center',
+                          alignItems: 'center',
+                          gap: '8px'
+                        }}
+                      >
+                        {isExporting ? (
+                          <Image src="/white-loading.svg" alt="Loading" width={18} height={18} />
+                        ) : (
+                          'Converter Vídeo'
+                        )}
+                      </button>
+                    </div>
+                  }
 
                   {/* Bloco de extração de áudio */}
                   <div style={{ flex: '1 1 45%', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
