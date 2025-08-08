@@ -1,10 +1,11 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useCallback, useEffect } from 'react';
 import Image from "@/components/Image";
 import { v4 as uuidv4 } from 'uuid';
 import { formatTimecode, calculateDifference, fileToBase64, base64ToFile } from "@/utils/utils";
 import { toast } from 'react-toastify';
 import { useVisibility } from '@/contexts/VisibilityContext';
 import ImageEditor from '@/components/ImageEditor';
+import { useHotkeys } from "../hooks/useHotKeys";
 
 const VideoUploader = () => {
   const [currentTimecodeIn, setCurrentTimecodeIn] = useState(null);
@@ -25,10 +26,11 @@ const VideoUploader = () => {
   const [selectedImageName, setSelectedImageName] = useState(null);
   const [showCropModal, setShowCropModal] = useState(false);
   const [transcriptionTotalTime, setTranscriptionTotalTime] = useState(null);
-  
+
   const [segments, setSegments] = useState([]);
 
   const videoRef = useRef(null);
+  const audioRef = useRef(null);
   const imageInputRef = useRef(null);
   const fileInputRef = useRef(null);
   const transcriptionController = useRef(null);
@@ -43,7 +45,7 @@ const VideoUploader = () => {
         transcriptionController.current.abort()
       }
       if (mediaSrc) URL.revokeObjectURL(mediaSrc);
-  
+
       const isDifferent = file !== originalFilePath;
       if (isDifferent) {
         resetVideoState(); // limpa apenas se for novo
@@ -61,7 +63,7 @@ const VideoUploader = () => {
       // Transcreve direto com path do arquivo
       handleTranscription(file, controller.signal);
     }
-  
+
     fileInputRef.current.value = '';
   };
 
@@ -114,11 +116,15 @@ const VideoUploader = () => {
     setMediaType(undefined);
     setMediaName(null);
     setOriginalFilePath(null);
-  
+
     if (videoRef.current) {
       videoRef.current.pause();
       videoRef.current.removeAttribute('src');
       videoRef.current.load();
+    } else if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current.removeAttribute('src');
+      audioRef.current.load();
     }
   };
 
@@ -137,12 +143,19 @@ const VideoUploader = () => {
         const image = canvas.toDataURL();
         setCurrentTimecodeImage(image);
       }
+    } else if (audioRef.current) {
+      const currentTime = audioRef.current.currentTime;
+      console.log(currentTime)
+      setCurrentTimecodeIn(currentTime);
     }
   };
 
   const handleOutClick = () => {
     if (videoRef.current) {
       const currentTime = videoRef.current.currentTime;
+      setCurrentTimecodeOut(currentTime);
+    } else if (audioRef.current) {
+      const currentTime = audioRef.current.currentTime;
       setCurrentTimecodeOut(currentTime);
     }
   };
@@ -170,8 +183,8 @@ const VideoUploader = () => {
         console.error('Erro ao enviar timecode para o servidor:', error);
       }
 
-      setCurrentTimecodeIn(0);
-      setCurrentTimecodeOut(0);
+      setCurrentTimecodeIn(null);
+      setCurrentTimecodeOut(null);
       setCurrentTimecodeImage(null);
       setLoading(false);
     }
@@ -182,11 +195,11 @@ const VideoUploader = () => {
       toast.error('Imagem inválida ou não reconhecida.');
       return;
     }
-  
+
     try {
       const base64 = await fileToBase64(file);
       const controlId = uuidv4();
-  
+
       const newTimecode = {
         id: controlId,
         inTime: 0,
@@ -197,11 +210,11 @@ const VideoUploader = () => {
         rating: 0,
         mediaName: file.name,
       };
-  
+
       const base64Clean = base64.replace(/^data:image\/\w+;base64,/, '');
       const fileObj = base64ToFile(base64Clean, `${controlId}.png`);
       await uploadTimecode(fileObj, newTimecode);
-  
+
       setChangeProject(true);
       toast.success('Imagem importada e texto extraído!');
     } catch (err) {
@@ -312,8 +325,114 @@ const VideoUploader = () => {
       console.error('Erro ao copiar para a área de transferência: ', err);
     }
   }
+
+  const oBtnRef = useRef(null);
+  const iBtnRef = useRef(null);
+  const dotBtnRef = useRef(null);
+
+  const handleO = useCallback(() => {
+    console.log("click O")
+    oBtnRef.current?.click();
+  }, []);
+  const handleI = useCallback(() => {
+    console.log("click I")
+    iBtnRef.current?.click();
+  }, []);
+  const handleDot = useCallback(() => {
+    console.log("click .")
+    dotBtnRef.current?.click();
+  }, []);
+  const seekBy = useCallback((delta) => {
+    console.log(`click ${delta}`)
+    // pega o elemento certo
+    const el = mediaType === 'audio' ? audioRef.current : videoRef.current;
+    if (!el) return;
+
+    const cur = Number.isFinite(el.currentTime) ? el.currentTime : 0;
+    const dur = Number.isFinite(el.duration) ? el.duration : undefined;
+
+    let next = cur + delta;
+    // clamp: [0, duration] se soubermos a duração; senão, só >= 0
+    next = dur !== undefined ? Math.min(Math.max(0, next), dur) : Math.max(0, next);
+
+    try {
+      el.currentTime = next;
+    } catch (_) {
+      // silencioso: alguns players podem recusar durante determinados estados
+    }
+  }, [mediaType]);
+  const togglePlayPause = useCallback(() => {
+    const el = mediaType === 'audio' ? audioRef.current : videoRef.current;
+
+    console.log("click space 2", {
+      paused: el?.paused,
+      ended: el?.ended,
+      readyState: el?.readyState,
+      currentTime: el?.currentTime,
+    })
+    if (!el) return;
+
+    if (el.paused || el.ended) {
+      const p = el.play?.();
+      if (p && typeof p.then === 'function') p.catch(() => { });
+    } else {
+      try { el.pause?.(); } catch { }
+    }
+  }, [mediaType]);
+  useEffect(() => {
+    const BLOCK_INPUT_TYPES = new Set(["button", "checkbox", "color", "file", "hidden", "image", "radio", "range", "reset", "submit"]);
+    const isTyping = (el) => {
+      const node = el && el.nodeType === 1 ? el : null;
+      if (!node) return false;
+      if (node.closest && node.closest('[data-hotkeys="off"]')) return true;
+      if (node.isContentEditable) return true;
+      const tag = (node.tagName || "").toUpperCase();
+      if (tag === "TEXTAREA") return true;
+      if (tag === "INPUT") {
+        const t = (node.type || "").toLowerCase();
+        return !BLOCK_INPUT_TYPES.has(t);
+      }
+      return false;
+    };
+
+    const onKeyUp = (e) => {
+      const key = (e.key || e.code || "").toLowerCase();
+      if (key !== " " && key !== "spacebar" && key !== "space") return;
+
+      if (isTyping(e.target)) return;
+      e.preventDefault();
+      e.stopPropagation();
+
+      togglePlayPause();
+    };
+
+    // captura pra vencer handlers nativos de controles
+    window.addEventListener("keyup", onKeyUp, true);
+    document.addEventListener("keyup", onKeyUp, true);
+    return () => {
+      window.removeEventListener("keyup", onKeyUp, true);
+      document.removeEventListener("keyup", onKeyUp, true);
+    };
+  }, [togglePlayPause]);
+  useHotkeys({
+    "o": handleO,
+    "i": handleI,
+    ".": handleDot,
+    "<": () => seekBy(-5),
+    ">": () => seekBy(+5),
+    arrowleft: () => seekBy(-5),
+    arrowright: () => seekBy(+5),
+  });
+
+  const blurIfFocused = () => {
+    const el = videoRef.current;
+    if (el && document.activeElement === el) {
+      el.blur();
+    }
+  };
+  const blurNextTick = () => requestAnimationFrame(blurIfFocused);
   return (
-    <div style={{ backgroundColor: "rgba(27, 27, 27, 1)", minHeight: "calc(100vh - 78px)", maxHeight: "calc(100vh - 78px)", paddingLeft: 48, width: '40%', display: 'flex', flexDirection: 'column', alignItems: 'center', boxSizing: 'border-box' }}>
+    <div style={{ backgroundColor: "rgba(27, 27, 27, 1)", minHeight: "calc(100vh - 78.4px)", maxHeight: "calc(100vh - 78.4px)", paddingLeft: 48, width: '40%', display: 'flex', flexDirection: 'column', alignItems: 'center', boxSizing: 'border-box' }}>
       <div style={{ width: 'calc(100% - 32px)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '16px', padding: '24px 16px 8px 16px' }}>
         <div style={{
           display: 'flex',
@@ -321,7 +440,7 @@ const VideoUploader = () => {
           justifyContent: 'center',
           gap: '24px',
           flex: 1,
-          
+
         }}>
           <button
             onClick={() => imageInputRef.current?.click()}
@@ -469,13 +588,21 @@ const VideoUploader = () => {
       {mediaSrc && (
         <div style={{ width: 'calc(100% - 32px)', padding: '16px' }}>
           {mediaType === 'video' &&
-            <video ref={videoRef} controls width="100%" crossOrigin="anonymous">
+            <video
+              ref={videoRef}
+              controls
+              width="100%"
+              crossOrigin="anonymous"
+              tabIndex={-1}
+              onFocus={blurNextTick}
+              onPointerUpCapture={blurNextTick}
+            >
               <source src={mediaSrc} type="video/mp4" />
               Seu navegador não suporta vídeos.
             </video>
           }
           {mediaType === 'audio' && (
-            <audio controls style={{ width: '100%' }}>
+            <audio ref={audioRef} controls style={{ width: '100%' }}>
               <source src={mediaSrc} type={originalFilePath.type} />
               Seu navegador não suporta áudio.
             </audio>
@@ -490,14 +617,42 @@ const VideoUploader = () => {
           >
             <button
               onClick={handleInClick}
-              style={{ display: "flex", alignItems: "center", justifyContent: "center", padding: "6px 12px", color: "white", fontWeight: "600", backgroundColor: "rgba(196, 48, 43, 1)", border: "2px solid rgba(196, 48, 43, 1)", borderRadius: "8px", cursor: 'pointer' }}
+              ref={iBtnRef}
+              style={
+                {
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  padding: "6px 12px",
+                  color: currentTimecodeIn !== null ? "white" : "rgba(196, 48, 43, 1)",
+                  fontWeight: "600",
+                  backgroundColor: currentTimecodeIn !== null ? "rgba(196, 48, 43, 1)" : "transparent",
+                  border: "2px solid rgba(196, 48, 43, 1)",
+                  borderRadius: "8px",
+                  cursor: 'pointer'
+                }
+              }
             >
               IN
             </button>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "center", padding: "6px 12px", backgroundColor: "rgba(230, 224, 233, 0.12)", color: "rgba(255, 255, 255, 1)", borderRadius: "8px", fontSize: '12px' }}>{formatTimecode(currentTimecodeIn)}</div>
             <button
               onClick={handleOutClick}
-              style={{ display: "flex", alignItems: "center", justifyContent: "center", padding: "6px 12px", color: "rgba(196, 48, 43, 1)", fontWeight: "600", backgroundColor: "transparent", border: "2px solid rgba(196, 48, 43, 1)", borderRadius: "8px", cursor: 'pointer' }}
+              ref={oBtnRef}
+              style={
+                {
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  padding: "6px 12px",
+                  color: currentTimecodeOut !== null ? "white" : "rgba(196, 48, 43, 1)",
+                  fontWeight: "600",
+                  backgroundColor: currentTimecodeOut !== null ? "rgba(196, 48, 43, 1)" : "transparent",
+                  border: "2px solid rgba(196, 48, 43, 1)",
+                  borderRadius: "8px",
+                  cursor: 'pointer'
+                }
+              }
             >
               OUT
             </button>
@@ -532,6 +687,7 @@ const VideoUploader = () => {
               :
               <button
                 onClick={handleAddTimecode}
+                ref={dotBtnRef}
                 style={{
                   display: 'flex',
                   alignItems: 'center',
@@ -559,7 +715,7 @@ const VideoUploader = () => {
               </button>
             }
           </div>
-          
+
           {mediaSrc && (
             <div style={{ marginTop: '1rem', width: '100%' }}>
               <button
@@ -642,7 +798,7 @@ const VideoUploader = () => {
 
                       {/* Ícone de fechar */}
 
-                      <div style={{ display: 'flex', gap: '32px', alignItems: 'center'}}>
+                      <div style={{ display: 'flex', gap: '32px', alignItems: 'center' }}>
                         <Image
                           src="/copy.svg"
                           alt="Copiar transcrição"

@@ -509,7 +509,7 @@ const TimecodesSection = (props) => {
         ;
 
     return (
-        <div style={props.script ? { display: 'flex', width: '100%', height: 'calc(100vh - 78px)' } : { display: 'flex', width: '60%', height: 'calc(100vh - 78px)', backgroundColor: "rgba(231, 231, 231)", }}>
+        <div style={props.script ? { display: 'flex', width: '100%', height: 'calc(100vh - 78.4px)' } : { display: 'flex', width: '60%', height: 'calc(100vh - 78.4px)', backgroundColor: "rgba(231, 231, 231)", }}>
             <div style={{ width: props.script ? '40%' : '100%'}}>
                 <div 
                         style={{
@@ -641,7 +641,7 @@ const TimecodesSection = (props) => {
                 }
             </div>
             {props.script &&
-                <div style={{ width: '60%', height: 'calc(100vh - 78px)' }}>
+                <div style={{ width: '60%', height: 'calc(100vh - 78.4px)' }}>
                     <div ref={filterRef} style={{ backgroundColor: "rgb(242, 242, 242)", padding: '16px 16px 12px 16px', display: 'flex', alignItems: 'center', gap: '12px' }}>
                         <button
                             style={{

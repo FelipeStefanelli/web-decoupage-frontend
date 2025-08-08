@@ -26,10 +26,9 @@ const TimecodeCard = ({ id, timecode, updateTimecode, setActiveMenu, activeMenu,
         const name = hasExtension ? filename.slice(0, dotIndex) : filename;
         const ext = hasExtension ? filename.slice(dotIndex) : '';
       
-        // Se for curto o suficiente, retorna o nome todo
         if (filename.length <= maxLength) return filename;
       
-        const allowedNameLength = maxLength - ext.length - 3; // 3 for '...'
+        const allowedNameLength = maxLength - ext.length - 3;
         const shortName = name.slice(0, allowedNameLength);
       
         return `${shortName}..${ext}`;
@@ -71,7 +70,6 @@ const TimecodeCard = ({ id, timecode, updateTimecode, setActiveMenu, activeMenu,
                         overflow: 'hidden'
                     }}
                 >
-                    {/* img RECEBE z-index maior para ficar por cima das linhas */}
                     <img
                         src={`http://localhost:4000${timecode.imageUrl}`}
                         alt={`Thumbnail at ${timecode.inTime}`}
@@ -205,7 +203,7 @@ const TimecodeCard = ({ id, timecode, updateTimecode, setActiveMenu, activeMenu,
                             height={18}
                             style={{ width: "18px", height: "18px", cursor: "pointer" }}
                             onClick={async () => {
-                                const textContent = timecode.videoName;
+                                const textContent = timecode.mediaName;
                                 try {
                                     await navigator.clipboard.writeText(textContent); // Usando a Clipboard API para copiar o texto
                                     alert('Texto copiado para a área de transferência!');
@@ -229,9 +227,9 @@ const TimecodeCard = ({ id, timecode, updateTimecode, setActiveMenu, activeMenu,
                                     textOverflow: 'ellipsis',
                                     margin: 0
                                 }}
-                                title={timecode.videoName}
+                                title={timecode.mediaName}
                                 >
-                                {renderFilename(timecode.videoName)}
+                                {renderFilename(timecode.mediaName)}
                             </p>
                         </div>
                     </div>

@@ -3,6 +3,7 @@ import Image from "@/components/Image";
 import { formatTimecode } from "@/utils/utils";
 import { useVisibility } from '@/contexts/VisibilityContext';
 import html2pdf from 'html2pdf.js';
+import ReactStars from "react-stars";
 
 const HeaderDecoupagePreview = ({ contentRef, data, projectName, exportDate }) => {
   const [base64Map, setBase64Map] = useState({});
@@ -45,14 +46,18 @@ const HeaderDecoupagePreview = ({ contentRef, data, projectName, exportDate }) =
     }, 1000);
   }, [data]);
 
-  // Gera o preview do PDF a partir do conteúdo referenciado por contentRef
   const generatePreview = useCallback(async () => {
     if (!contentRef.current) return
 
     const element = contentRef.current
     const opt = {
       html2canvas: { scale: 2 },
-      jsPDF: { unit: 'pt', format: 'a4', orientation: 'portrait' }
+      jsPDF: { unit: 'pt', format: 'a4', orientation: 'portrait' },
+      margin: [16, 0, 0, 0],
+      pagebreak: {
+        mode: ['css'],
+        avoid: '.card-selector',
+      }
     }
 
     // gera o blob em vez de salvar direto
@@ -68,7 +73,17 @@ const HeaderDecoupagePreview = ({ contentRef, data, projectName, exportDate }) =
     // libera URL antiga quando desmontar
     return () => previewUrl && URL.revokeObjectURL(previewUrl)
   }, [contentRef]);
+  function groupArray(arr, size) {
+    return arr.filter((t) => t.type).reduce((acc, _, i) => {
+      if (i % size === 0) {
+        acc.push(arr.slice(i, i + size));
+      }
+      return acc;
+    }, []);
+  }
 
+  const grouped = groupArray(data.timecodes, 3);
+  console.log('grouped', grouped)
   const renderFilename = (filename, maxLength = 20) => {
     if (!filename) return "";
 
@@ -84,7 +99,6 @@ const HeaderDecoupagePreview = ({ contentRef, data, projectName, exportDate }) =
 
     return `${shortName}..${ext}`;
   };
-
   return (
     <div style={{ width: '100%', height: 'calc(100vh - 220px)', overflow: 'hidden' }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%', height: '100%' }}>
@@ -102,9 +116,9 @@ const HeaderDecoupagePreview = ({ contentRef, data, projectName, exportDate }) =
           </>
         )}
       </div>
-      <div ref={contentRef}>
+      <div ref={contentRef} style={{padding: "0 16px 16px 16px"}}>
         <div>
-          <p style={{ margin: "12px 8px", fontSize: "18px" }}>DECUPAGEM</p>
+          <p style={{ margin: "0 8px 12px 8px", fontSize: "18px" }}>DECUPAGEM</p>
           <div
             style={{
               display: "grid",
@@ -122,171 +136,212 @@ const HeaderDecoupagePreview = ({ contentRef, data, projectName, exportDate }) =
           <div
             style={{
               padding: "12px 8px",
-              display: "grid",
-              gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-              gap: "12px",
             }}
           >
-            {data?.timecodes?.filter((t) => t.type).map((timecode, id) => (
+            {grouped.map((group, groupId) => (
               <div
-                key={id}
+                key={`group-${groupId}`}
+                className="card-selector"
                 style={{
-                  border: "1px solid rgb(158, 158, 158)",
-                  borderRadius: "6px",
+                  display: "flex",
+                  gap: "12px",
+                  paddingBottom: "12px"
                 }}
               >
-                <div
-                  style={{
-                    display: "flex",
-                    flexDirection: "column",
-                    gap: "6px",
-                    backgroundColor: "#fff",
-                    borderRadius: "6px",
-                  }}
-                >
+                {group.map((timecode, id) => (
                   <div
+                    key={id}
                     style={{
-                      position: 'relative',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      width: '100%',
-                      backgroundColor: 'rgb(54, 54, 54)',
-                      borderTopLeftRadius: '4px',
-                      borderTopRightRadius: '4px',
-                      height: '100px',
-                      padding: '16px 0',
-                      overflow: 'hidden'
-                    }}
-                  >
-                    <img
-                      src={base64Map[timecode.id] || `http://localhost:4000${timecode.imageUrl}`}
-                      alt={`Thumbnail at ${timecode.inTime}`}
-                      style={{
-                        maxHeight: '100px',
-                        height: 'auto',
-                        width: 'auto',
-                        maxWidth: '100%',
-                        display: 'block',
-                        margin: '0 auto',
-                        userSelect: 'none',
-                        pointerEvents: 'none',
-                        borderRadius: '2px',
-                        objectFit: 'cover',
-                        position: 'relative',
-                        zIndex: 2,
-                      }}
-                    />
-                  </div>
-                  <div
-                    style={{
-                      display: "flex",
-                      flexDirection: 'column',
-                      alignItems: "flex-start",
-                      justifyContent: "flex-start",
-                      padding: "0 16px 8px 0",
+                      border: "1px solid rgb(158, 158, 158)",
+                      borderRadius: "6px",
+                      flex: 1
                     }}
                   >
                     <div
                       style={{
                         display: "flex",
-                        alignItems: "center",
+                        flexDirection: "column",
                         gap: "6px",
-                        padding: "7px 8px",
-                        fontSize: "15px",
-                        fontWeight: 800,
-                        color: "rgb(14, 11, 25)",
-                        flexShrink: 0,
+                        backgroundColor: "#fff",
+                        borderRadius: "6px",
                       }}
                     >
-                      {id + 1}
                       <div
                         style={{
-                          width: "2px",
-                          height: "15px",
-                          backgroundColor: "rgb(14, 11, 25)",
+                          position: 'relative',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          width: '100%',
+                          backgroundColor: 'rgb(54, 54, 54)',
+                          borderTopLeftRadius: '4px',
+                          borderTopRightRadius: '4px',
+                          height: '100px',
+                          padding: '16px 0',
+                          overflow: 'hidden'
                         }}
-                      ></div>
-                      {timecode.type !== "" &&
-                        <Image
-                          src={
-                            timecode.type === "V"
-                              ? "/V-active.svg"
-                              : timecode.type === "A"
-                                ? "/A-active.svg"
-                                : timecode.type === "AV"
-                                  ? "/AV-active.svg"
-                                  : timecode.type === "image"
-                                    ? "/image-active.svg"
-                                    : ""
-                          }
-                          alt="Type icon"
-                          width={18}
-                          height={18}
-                          style={{ display: "block" }}
+                      >
+                        <img
+                          src={base64Map[timecode.id] || `http://localhost:4000${timecode.imageUrl}`}
+                          alt={`Thumbnail at ${timecode.inTime}`}
+                          style={{
+                            maxHeight: '100px',
+                            height: 'auto',
+                            width: 'auto',
+                            maxWidth: '100%',
+                            display: 'block',
+                            margin: '0 auto',
+                            userSelect: 'none',
+                            pointerEvents: 'none',
+                            borderRadius: '2px',
+                            objectFit: 'cover',
+                            position: 'relative',
+                            zIndex: 2,
+                          }}
                         />
-                      }
+                      </div>
+                      <div
+                        style={{
+                          display: "flex",
+                          flexDirection: 'column',
+                          alignItems: "flex-start",
+                          justifyContent: "flex-start",
+                          padding: "0 16px 8px 0",
+                        }}
+                      >
+                        <div
+                          style={{
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "space-between",
+                            width: "100%",
+                            padding: "2px 8px 8px",
+                            fontSize: "15px",
+                            fontWeight: 800,
+                            color: "rgb(14, 11, 25)",
+                            flexShrink: 0,
+                          }}
+                        >
+                          <div
+                            style={{
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "space-between",
+                              gap: "6px",
+                            }}
+                          >
+                            {id + 1}
+                            <div
+                              style={{
+                                width: "2px",
+                                height: "15px",
+                                backgroundColor: "rgb(14, 11, 25)",
+                              }}
+                            ></div>
+                            {timecode.type !== "" &&
+                              <Image
+                                src={
+                                  timecode.type === "V"
+                                    ? "/V-active.svg"
+                                    : timecode.type === "A"
+                                      ? "/A-active.svg"
+                                      : timecode.type === "AV"
+                                        ? "/AV-active.svg"
+                                        : timecode.type === "image"
+                                          ? "/image-active.svg"
+                                          : ""
+                                }
+                                alt="Type icon"
+                                width={18}
+                                style={{ display: "block" }}
+                              />
+                            }
+                          </div>
+                          <ReactStars
+                            value={timecode.rating}
+                            count={3}
+                            onChange={(newRating) => ratingChanged(timecode, newRating)}
+                            size={20}
+                            color1={"#b4b4b4"}
+                            color2={"#ffd700"}
+                          />
+                        </div>
+                        {timecode.text &&
+                          <p
+                            style={{
+                              width: "calc(100% - 34px)",
+                              padding: "10px 8px 12px",
+                              margin: "2px 16px 4px 16px",
+                              fontSize: "12px",
+                              lineHeight: "12px",
+                              fontWeight: 500,
+                              color: "rgb(14, 11, 25)",
+                              flexShrink: 1,
+                              backgroundColor: "rgb(231, 231, 231)",
+                              borderRadius: "6px",
+                              borderLeft: timecode.type === 'V'
+                                ? '3px solid rgb(0, 40, 77)'
+                                : timecode.type === 'A'
+                                  ? '3px solid rgb(44, 146, 128)'
+                                  : timecode.type === 'AV'
+                                    ? '3px solid rgb(146, 44, 44)'
+                                    : '0'
+                            }}
+                          >
+                            {timecode.text}
+                          </p>
+                        }
+                      </div>
+                      <div
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "flex-end",
+                          gap: "1px",
+                          padding: "0 16px",
+                          fontSize: "10px",
+                          fontWeight: 600,
+                          color: "rgb(14, 11, 25)",
+                        }}
+                      >
+                        <span>{formatTimecode(timecode.inTime)}</span>
+                        <span>·</span>
+                        <span>{formatTimecode(timecode.outTime)}</span>
+                        <span>·</span>
+                        <span
+                          style={{
+                            backgroundColor: "black",
+                            color: "white",
+                            padding: "1px 4px 2px",
+                            borderRadius: "2px",
+                          }}
+                        >
+                          {formatTimecode(timecode.duration)}
+                        </span>
+                      </div>
+                      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '8px', width: 'calc(100% - 32px)', padding: '8px 16px 12px 16px' }}>
+                        <p
+                          style={{
+                            fontSize: '10px',
+                            fontWeight: '500',
+                            lineHeight: '12px',
+                            letterSpacing: '0.1px',
+                            textAlign: 'end',
+                            color: 'black',
+                            maxWidth: '160px',
+                            whiteSpace: 'nowrap',
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis',
+                            margin: 0
+                          }}
+                          title={timecode.mediaName}
+                        >
+                          {renderFilename(timecode.mediaName)}
+                        </p>
+                      </div>
                     </div>
-                    <span
-                      style={{
-                        padding: "7px 8px",
-                        fontSize: "12px",
-                        fontWeight: 500,
-                        color: "rgb(14, 11, 25)",
-                        flexShrink: 1,
-                      }}
-                    >
-                      {timecode.text}
-                    </span>
                   </div>
-                  <div
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "flex-end",
-                      gap: "1px",
-                      padding: "2px 16px",
-                      fontSize: "10px",
-                      fontWeight: 600,
-                      color: "rgb(14, 11, 25)",
-                    }}
-                  >
-                    <span>{formatTimecode(timecode.inTime)}</span>
-                    <span>·</span>
-                    <span>{formatTimecode(timecode.outTime)}</span>
-                    <span>·</span>
-                    <span
-                      style={{
-                        backgroundColor: "black",
-                        color: "white",
-                        padding: "0 4px",
-                        borderRadius: "2px",
-                      }}
-                    >
-                      {formatTimecode(timecode.duration)}
-                    </span>
-                  </div>
-                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '8px', width: 'calc(100% - 32px)', padding: '12px 16px 12px 16px' }}>
-                    <p
-                      style={{
-                        fontSize: '10px',
-                        fontWeight: '500',
-                        lineHeight: '12px',
-                        letterSpacing: '0.1px',
-                        textAlign: 'end',
-                        color: 'black',
-                        maxWidth: '160px',
-                        whiteSpace: 'nowrap',
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis',
-                        margin: 0
-                      }}
-                      title={timecode.videoName}
-                    >
-                      {renderFilename(timecode.videoName)}
-                    </p>
-                  </div>
-                </div>
+                ))}
               </div>
             ))}
           </div>

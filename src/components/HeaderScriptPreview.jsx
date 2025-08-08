@@ -4,6 +4,7 @@ import ScriptInput from '@/components/ScriptInput';
 import { formatTimecode } from '@/utils/utils';
 import html2pdf from 'html2pdf.js'
 import { useVisibility } from '@/contexts/VisibilityContext';
+import ReactStars from 'react-stars';
 
 const HeaderScriptPreview = ({ contentRef, data, projectName, exportDate, views }) => {
   const [previewUrl, setPreviewUrl] = useState(null);
@@ -23,8 +24,8 @@ const HeaderScriptPreview = ({ contentRef, data, projectName, exportDate, views 
             const res = await fetch(url, {
               method: 'GET',
               headers: {
-                  'ngrok-skip-browser-warning': '1',
-                  'Accept': 'application/json'
+                'ngrok-skip-browser-warning': '1',
+                'Accept': 'application/json'
               }
             });
             const blob = await res.blob();
@@ -47,15 +48,20 @@ const HeaderScriptPreview = ({ contentRef, data, projectName, exportDate, views 
       generatePreview();
     }, 1000);
   }, [data]);
-  
 
-const generatePreview = useCallback(async () => {
+
+  const generatePreview = useCallback(async () => {
     if (!contentRef.current) return
 
     const element = contentRef.current
     const opt = {
       html2canvas: { scale: 2 },
-      jsPDF: { unit: 'pt', format: 'a4', orientation: 'portrait' }
+      jsPDF: { unit: 'pt', format: 'a4', orientation: 'portrait' },
+      margin: [16, 0, 0, 0],
+      pagebreak: {
+        mode: ['css'],      // habilita suporte via CSS
+        avoid: '.scene-selector'                // evita quebrar qualquer elemento com classe "card"
+      }
     }
 
     // gera o blob em vez de salvar direto
@@ -71,11 +77,10 @@ const generatePreview = useCallback(async () => {
     // libera URL antiga quando desmontar
     return () => previewUrl && URL.revokeObjectURL(previewUrl)
   }, [contentRef]);
-
   return (
     <div style={{ width: '100%', height: 'calc(100vh - 220px)', overflow: 'hidden' }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%', height: '100%' }}>
-        {loading ? 
+        {loading ?
           <Image src="/loading.svg" alt="Carregando" width={48} height={48} />
           :
           <>
@@ -89,8 +94,8 @@ const generatePreview = useCallback(async () => {
           </>
         }
       </div>
-      <div ref={contentRef}>
-        <div style={{ padding: '12px 8px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+      <div ref={contentRef} style={{padding: "0 16px 16px 16px"}}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
           <span style={{ fontSize: '18px' }}>ROTEIRO</span>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', border: '1px solid rgb(180, 180, 180)', borderRadius: '8px' }}>
             <div style={cellStyle}><strong>Nome do projeto</strong></div>
@@ -99,19 +104,19 @@ const generatePreview = useCallback(async () => {
             <div style={cellStyle}>{exportDate}</div>
           </div>
           {data?.script?.map((script, id) => (
-            <div key={id} style={{ border: '1px solid rgb(200, 200, 200)', borderRadius: '8px' }}>
+            <div key={id} className='scene-selector' style={{ border: '1px solid rgb(200, 200, 200)', borderRadius: '8px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', borderTopLeftRadius: '8px', borderTopRightRadius: '8px', backgroundColor: 'rgb(231, 231, 231)', padding: '12px 16px', fontSize: '16px', lineHeight: '18px', color: 'rgb(14, 11, 25)' }}>{script.name}</div>
               {script.activeFields.length === 0 ? (
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px 0' }}>
-                  <span>Adicione <b>elementos</b> na cena e comece sua história!</span>
+                  <span>Essa cena não contém <b>elementos</b>!</span>
                 </div>
               ) : (
                 <div style={{ display: 'flex', gap: '16px', padding: '16px' }}>
                   <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '8px' }}>
                     {script.activeFields.includes('description') && views['description-view'] === 'show' && (
                       <div style={inputBoxStyle}>
-                        <Image src="/description-active.svg" alt="Descrição" width={18} height={18} style={iconStyle} />
-                        <ScriptInput readOnly placeholder="Descrição" value={script.description} onChange={() => {}} script={script} />
+                        <Image src="/description-active.svg" alt="Descrição" width={18} style={iconStyle} />
+                        <ScriptInput readOnly placeholder="Descrição" value={script.description} onChange={() => { }} script={script} />
                       </div>
                     )}
                     {script.activeFields.includes('takes') && views['takes-view'] === 'show' && renderTakes(script, id, base64Map)}
@@ -119,14 +124,14 @@ const generatePreview = useCallback(async () => {
                   <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '8px' }}>
                     {script.activeFields.includes('audio') && views['audio-view'] === 'show' && (
                       <div style={inputBoxStyle}>
-                        <Image src="/A-active.svg" alt="Áudio" width={18} height={18} style={iconStyle} />
-                        <ScriptInput readOnly placeholder="Áudio" value={script.audio} onChange={() => {}} script={script} />
+                        <Image src="/A-active.svg" alt="Áudio" width={18} style={iconStyle} />
+                        <ScriptInput readOnly placeholder="Áudio" value={script.audio} onChange={() => { }} script={script} />
                       </div>
                     )}
                     {script.activeFields.includes('locution') && views['locution-view'] === 'show' && (
                       <div style={inputBoxStyle}>
-                        <Image src="/locution-active.svg" alt="Locução" width={18} height={18} style={iconStyle} />
-                        <ScriptInput readOnly placeholder="Locução" value={script.locution} onChange={() => {}} script={script} />
+                        <Image src="/locution-active.svg" alt="Locução" width={18} style={iconStyle} />
+                        <ScriptInput readOnly placeholder="Locução" value={script.locution} onChange={() => { }} script={script} />
                       </div>
                     )}
                     {script.activeFields.includes('audios') && views['audios-view'] === 'show' && renderAudios(script, id)}
@@ -166,28 +171,27 @@ const iconStyle = {
 const renderTimecodeCard = (timecode, id, scriptId, type = null, base64Map = null) => {
   return (
     <div key={`${scriptId}-${id}`} style={{ border: '1px solid rgb(200, 200, 200)', borderRadius: '6px', }}>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', backgroundColor: '#fff', borderRadius: '6px' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', backgroundColor: '#fff', borderRadius: '6px' }}>
         {timecode.imageUrl && base64Map && (
           <div
             style={{
-                position: 'relative',            // <— cria o contexto para os absolutely-positioned
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                width: '100%',
-                backgroundColor: 'rgb(54, 54, 54)',
-                borderTopLeftRadius: '4px',
-                borderTopRightRadius: '4px',
-                height: '100px',
-                padding: '16px 0',
-                overflow: 'hidden'
+              position: 'relative',            // <— cria o contexto para os absolutely-positioned
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              width: '100%',
+              backgroundColor: 'rgb(54, 54, 54)',
+              borderTopLeftRadius: '4px',
+              borderTopRightRadius: '4px',
+              height: '100px',
+              padding: '16px 0',
+              overflow: 'hidden'
             }}
           >
-            {/* img RECEBE z-index maior para ficar por cima das linhas */}
             <img
-                src={base64Map[timecode.id] || `http://localhost:4000${timecode.imageUrl}`}
-                alt={`Thumbnail at ${timecode.inTime}`}
-                style={{
+              src={base64Map[timecode.id] || `http://localhost:4000${timecode.imageUrl}`}
+              alt={`Thumbnail at ${timecode.inTime}`}
+              style={{
                 maxHeight: '100px',
                 height: 'auto',
                 width: 'auto',
@@ -200,33 +204,67 @@ const renderTimecodeCard = (timecode, id, scriptId, type = null, base64Map = nul
                 objectFit: 'cover',
                 position: 'relative',
                 zIndex: 2,
-                }}
+              }}
             />
           </div>
         )}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', alignItems: 'flex-start', padding: '8px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '0 8px 0 0', fontSize: '15px', fontWeight: '800', color: 'rgb(14, 11, 25)' }}>
-            {id + 1}
-            <div style={{ width: '2px', height: '15px', backgroundColor: 'rgb(14, 11, 25)' }}></div>
-            {timecode.type && <Image src={`/${typeToIcon(timecode.type)}`} alt="Type icon" width={18} height={17} style={{ display: 'block' }} />}
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: "space-between", width: "100%", padding: '0 8px 0 0' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <p style={{ margin: 0, fontSize: '15px', lineHeight: '15px', fontWeight: '800', color: 'rgb(14, 11, 25)' }}>{id + 1}</p>
+              <div style={{ width: '2px', height: '15px', backgroundColor: 'rgb(14, 11, 25)' }}></div>
+              {timecode.type && <Image src={`/${typeToIcon(timecode.type)}`} alt="Type icon" width={18} style={{ display: 'block' }} />}
+            </div>
+            <ReactStars
+              value={timecode.rating}
+              count={3}
+              onChange={(newRating) => ratingChanged(timecode, newRating)}
+              size={20}
+              color1={"#b4b4b4"}
+              color2={"#ffd700"}
+            />
           </div>
-          {type !== "AV" && <span style={{ fontSize: '12px', fontWeight: '500', color: 'rgb(14, 11, 25)' }}>{timecode.text}</span>}
+          {type !== "AV" && timecode.text &&
+            <p
+              style={{
+                width: "calc(100% - 26px)",
+                padding: "10px 8px 12px",
+                margin: "2px 16px 4px 4px",
+                fontSize: "12px",
+                lineHeight: "12px",
+                fontWeight: 500,
+                color: "rgb(14, 11, 25)",
+                flexShrink: 1,
+                backgroundColor: "rgb(231, 231, 231)",
+                borderRadius: "6px",
+                borderLeft: timecode.type === 'V'
+                  ? '3px solid rgb(0, 40, 77)'
+                  : timecode.type === 'A'
+                    ? '3px solid rgb(44, 146, 128)'
+                    : timecode.type === 'AV'
+                      ? '3px solid rgb(146, 44, 44)'
+                      : '0'
+              }}
+            >
+              {timecode.text}
+            </p>
+          }
         </div>
         {type !== "AV" &&
-          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '1px', padding: '4px 16px 8px 16px', fontSize: '10px', fontWeight: '600', color: 'rgb(14, 11, 25)' }}>
+          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '1px', padding: '0 16px', fontSize: '10px', fontWeight: '600', color: 'rgb(14, 11, 25)' }}>
             <span>{formatTimecode(timecode.inTime)}</span>
             <span>·</span>
             <span>{formatTimecode(timecode.outTime)}</span>
             <span>·</span>
-            <span style={{ backgroundColor: 'black', color: 'white', padding: '0 4px', borderRadius: '2px' }}>{formatTimecode(timecode.duration)}</span>
+            <span style={{ backgroundColor: 'black', color: 'white', padding: "1px 4px 2px", borderRadius: '2px' }}>{formatTimecode(timecode.duration)}</span>
           </div>
         }
-        <div style={{ textAlign: 'end', padding: '8px 16px 8px 16px', fontSize: '10px', fontWeight: '500', color: 'rgb(14, 11, 25)' }}>
+        {/** <div style={{ textAlign: 'end', padding: '8px 16px 8px 16px', fontSize: '10px', fontWeight: '500', color: 'rgb(14, 11, 25)' }}>
           {timecode.id.split('-')[0] + '-' + timecode.id.split('-')[1] + '-' + timecode.id.split('-')[2] + '-' + timecode.id.split('-')[3]}
-        </div>
-        {type !== "AV" && timecode.videoName && (
-            <div style={{ textAlign: 'end', padding: '8px 16px 16px 16px', fontSize: '10px', fontWeight: '500', color: 'rgb(14, 11, 25)' }}>{timecode.videoName}</div>
-          )
+        </div> **/}
+        {type !== "AV" && timecode.mediaName && (
+          <div style={{ textAlign: 'end', padding: '8px 16px 16px 16px', fontSize: '10px', fontWeight: '500', color: 'rgb(14, 11, 25)' }}>{timecode.mediaName}</div>
+        )
         }
       </div>
     </div>

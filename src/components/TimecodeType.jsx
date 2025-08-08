@@ -138,7 +138,7 @@ const TimecodeType = ({ id, timecode, setActiveMenu, updateTimecode, activeMenu,
                 <div
                     style={{
                         position: "absolute",
-                        left: "26px",
+                        left: "35px",
                         width: "96px",
                         display: "flex",
                         backgroundColor: "white"
