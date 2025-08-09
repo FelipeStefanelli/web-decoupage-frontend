@@ -236,7 +236,7 @@ const HeaderDecoupagePreview = ({ contentRef, data, projectName, exportDate }) =
               margin: "0 8px",
             }}
           >
-            <div style={cellStyle}><strong>Nome do projeto</strong></div>
+            <div style={cellStyle}><strong>Projeto</strong></div>
             <div style={cellStyle}>{projectName}</div>
             <div style={cellStyle}><strong>Data de exportação</strong></div>
             <div style={cellStyle}>{exportDate}</div>
