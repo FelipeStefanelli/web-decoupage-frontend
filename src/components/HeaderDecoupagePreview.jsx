@@ -41,9 +41,6 @@ const HeaderDecoupagePreview = ({ contentRef, data, projectName, exportDate }) =
     };
 
     loadImagesAsBase64();
-    setTimeout(() => {
-      generatePreview();
-    }, 1000);
   }, [data]);
 
   const generatePreview = useCallback(async () => {
@@ -82,6 +79,13 @@ const HeaderDecoupagePreview = ({ contentRef, data, projectName, exportDate }) =
     }, []);
   }
 
+  
+  useEffect(() => {
+    if (Object.keys(base64Map).length > 0) {
+      generatePreview();
+    }
+  }, [base64Map, generatePreview]);
+
   const grouped = groupArray(data.timecodes, 3);
   console.log('grouped', grouped)
   const renderFilename = (filename, maxLength = 20) => {
@@ -116,7 +120,7 @@ const HeaderDecoupagePreview = ({ contentRef, data, projectName, exportDate }) =
           </>
         )}
       </div>
-      <div ref={contentRef} style={{padding: "0 16px 16px 16px"}}>
+      <div ref={contentRef} style={{ padding: "0 16px 16px 16px" }}>
         <div>
           <p style={{ margin: "0 8px 12px 8px", fontSize: "18px" }}>DECUPAGEM</p>
           <div
