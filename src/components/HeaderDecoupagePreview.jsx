@@ -9,6 +9,10 @@ const HeaderDecoupagePreview = ({ contentRef, data, projectName, exportDate }) =
   const [base64Map, setBase64Map] = useState({});
   const [previewUrl, setPreviewUrl] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [filterText, setFilterText] = useState('');
+  const [debouncedFilterText, setDebouncedFilterText] = useState("");
+  const [selectedTypes, setSelectedTypes] = useState([]);
+  const [showFilter, setShowFilter] = useState(false);
   const { apiUrl } = useVisibility();
 
   useEffect(() => {
@@ -43,6 +47,23 @@ const HeaderDecoupagePreview = ({ contentRef, data, projectName, exportDate }) =
     loadImagesAsBase64();
   }, [data]);
 
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedFilterText(filterText);
+    }, 3500);
+
+    return () => {
+      clearTimeout(handler); // limpa o timer se o usuário digitar novamente antes de 5s
+    };
+  }, [filterText]);
+
+  useEffect(() => {
+    if (debouncedFilterText) {
+      console.log("Executando filtro:", debouncedFilterText);
+      generatePreview();
+    }
+  }, [debouncedFilterText]);
+
   const generatePreview = useCallback(async () => {
     if (!contentRef.current) return
 
@@ -69,7 +90,8 @@ const HeaderDecoupagePreview = ({ contentRef, data, projectName, exportDate }) =
     setLoading(false);
     // libera URL antiga quando desmontar
     return () => previewUrl && URL.revokeObjectURL(previewUrl)
-  }, [contentRef]);
+  }, [contentRef, debouncedFilterText, selectedTypes]);
+
   function groupArray(arr, size) {
     return arr.filter((t) => t.type).reduce((acc, _, i) => {
       if (i % size === 0) {
@@ -79,14 +101,18 @@ const HeaderDecoupagePreview = ({ contentRef, data, projectName, exportDate }) =
     }, []);
   }
 
-  
+  function filterArray(arr) {
+    return arr.filter(tc => (!filterText || tc.text?.toLowerCase().includes(filterText.toLowerCase())) && (selectedTypes.length === 0 || selectedTypes.includes(tc.type)))
+  }
+
   useEffect(() => {
     if (Object.keys(base64Map).length > 0) {
       generatePreview();
     }
   }, [base64Map, generatePreview]);
 
-  const grouped = groupArray(data.timecodes, 3);
+  const filtered = filterArray(data.timecodes);
+  const grouped = groupArray(filtered, 3);
   console.log('grouped', grouped)
   const renderFilename = (filename, maxLength = 20) => {
     if (!filename) return "";
@@ -104,17 +130,95 @@ const HeaderDecoupagePreview = ({ contentRef, data, projectName, exportDate }) =
     return `${shortName}..${ext}`;
   };
   return (
-    <div style={{ width: '100%', height: 'calc(100vh - 220px)', overflow: 'hidden' }}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%', height: '100%' }}>
+    <div style={{ width: '100%', height: 'calc(100vh - 196px)', overflow: 'hidden' }}>
+
+      <div
+        style={{
+          padding: '16px',
+          backgroundColor: "rgba(231, 231, 231)",
+          display: 'flex',
+          alignItems: 'center',
+          gap: '12px',
+          border: '2px solid rgb(158, 156, 168)'
+        }}
+      >
+        <>
+          <p
+            style={{
+              fontSize: "16px",
+              margin: "0 12px 0 0"
+            }}
+          >
+            Filtros
+          </p>
+          <input
+            type="text"
+            value={filterText}
+            onChange={(e) => setFilterText(e.target.value)}
+            placeholder="Filtrar por texto"
+            style={{
+              padding: '7px 12px',
+              borderRadius: '4px',
+              border: '1px solid #ccc',
+              flex: '1',
+              minWidth: '180px',
+              outline: 'none'
+            }}
+          />
+
+          <div style={{ display: 'flex', gap: '8px' }}>
+            {[
+              { type: 'A', icon: '/A.svg', alt: 'Áudio' },
+              { type: 'V', icon: '/V.svg', alt: 'Vídeo' },
+              { type: 'AV', icon: '/AV.svg', alt: 'Áudio-Vídeo' }
+            ].map(({ type, icon, alt }) => (
+              <button
+                key={type}
+                onClick={() =>
+                  setSelectedTypes(prev =>
+                    prev.includes(type) ? prev.filter(t => t !== type) : [...prev, type]
+                  )
+                }
+                style={{
+                  padding: '5px',
+                  borderRadius: '4px',
+                  border: selectedTypes.includes(type) ? '2px solid #c4302b' : '1px solid #ccc',
+                  backgroundColor: selectedTypes.includes(type) ? '#fbecec' : '#fff',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  width: '32px',
+                  height: '32px',
+                  boxSizing: 'border-box'
+                }}
+                title={alt}
+              >
+                <Image
+                  aria-hidden
+                  src={icon}
+                  alt={alt}
+                  width={19}
+                  height={17}
+                  style={{ width: "19px", height: "17px" }}
+                />
+              </button>
+            ))}
+          </div>
+        </>
+      </div>
+      <div style={{ display: 'flex', width: '100%', height: 'calc(100% - 70px)' }}>
         {loading ? (
-          <Image src="/loading.svg" alt="Carregando" width={48} height={48} />
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%', height: '100%' }}>
+            <Image src="/loading.svg" alt="Carregando" width={48} height={48} />
+          </div>
         ) : (
           <>
             {previewUrl && (
               <iframe
-                src={previewUrl}
+                src={`${previewUrl}#zoom=75`}
                 title="Preview do PDF"
-                style={{ width: '100%', height: '100%', border: 'none' }}
+                style={{ width: '100%', height: 'calc(100%)', border: 'none' }}
               />
             )}
           </>

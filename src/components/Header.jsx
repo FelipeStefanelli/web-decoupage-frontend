@@ -264,7 +264,7 @@ export default function Header(props) {
                         width: 'calc(100vw - 2rem)',
                         height: '100vh',
                         overflow: 'auto',
-                        padding: '2rem',
+                        padding: '16px',
                         boxShadow: '0 10px 25px rgba(0, 0, 0, 0.1)',
                         transition: 'transform 0.3s ease',
                         //transform: modalAnimation ? 'translate(-50%, -50%)' : 'translate(-150%, -50%)'
@@ -275,11 +275,10 @@ export default function Header(props) {
                                 display: 'flex',
                                 flexDirection: 'column',
                                 justifyContent: 'center',
-                                gap: '16px',
                                 width: '90%',
                             }}
                         >
-                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '24px 0px 12px 0', borderBottom: '2px solid rgb(158, 156, 168)' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '24px 0px 12px 0' }}>
                                 <p
                                     style={{
                                         width: '100%',
