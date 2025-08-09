@@ -845,7 +845,7 @@ const VideoUploader = () => {
             </div>
           )}
 
-          {mediaSrc && !isLoadingDetails && (
+          {mediaSrc && (
             <div style={{ marginTop: '1rem', width: '100%' }}>
               <details style={{ background: '#1e1e1e', borderRadius: '8px', padding: '1rem', marginTop: '1rem' }}>
                 <summary style={{ color: 'white', fontSize: '14px', cursor: 'pointer' }}>
