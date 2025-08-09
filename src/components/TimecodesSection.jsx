@@ -45,18 +45,18 @@ const TimecodesSection = (props) => {
     }, [visualizationDropdownOpen]);
 
     useEffect(() => {
-        if(projectName) {
+        if (projectName) {
             fetchTimecodes();
         }
     }, []);
 
     useEffect(() => {
-        if(changeProject === true && !projectName) {
+        if (changeProject === true && !projectName) {
             setTimecodes([]);
             setScripts([]);
             setChangeProject(false);
         }
-        if(changeProject === true && projectName) {
+        if (changeProject === true && projectName) {
             fetchTimecodes();
             setChangeProject(false);
         }
@@ -74,11 +74,11 @@ const TimecodesSection = (props) => {
         const data = await response.json();
         console.log(data)
         if (data) {
-          data?.timecodes && setTimecodes(data.timecodes);
-          data?.script && setScripts(data.script);
-          setChangeProject(false);
+            data?.timecodes && setTimecodes(data.timecodes);
+            data?.script && setScripts(data.script);
+            setChangeProject(false);
         }
-        
+
         setFetchingTimecodes(false);
     };
 
@@ -89,9 +89,9 @@ const TimecodesSection = (props) => {
             body: JSON.stringify({
                 scope: 'timecode-move',
                 json: {
-                timecodes: updatedTimecodes,
-                script: updatedScript
-            }
+                    timecodes: updatedTimecodes,
+                    script: updatedScript
+                }
             }),
         });
         await fetchTimecodes();
@@ -246,7 +246,7 @@ const TimecodesSection = (props) => {
             }
         }
     }
-    
+
     function createDropZone() {
         const zone = document.createElement('div');
 
@@ -269,7 +269,7 @@ const TimecodesSection = (props) => {
         draggedCard.current = event.currentTarget;
         console.log('card', card)
         draggedCardInfo.current = card;
-    
+
         if (draggedCard.current) {
             console.log('teste')
             setTimeout(() => draggedCard.current.classList.add('hidden'), 0);
@@ -286,7 +286,7 @@ const TimecodesSection = (props) => {
             draggedCard.current = null;
         }
     };
-    
+
     const handleDragOver = event => {
         event.preventDefault();
 
@@ -301,18 +301,18 @@ const TimecodesSection = (props) => {
         if (y < top + maxOffset) {
             const dist = y - top;     // 0 quando encosta na borda, até maxOffset
             let speed;
-            if (dist < 40)      speed = 9;
+            if (dist < 40) speed = 9;
             else if (dist < 90) speed = 5;
-            else                speed = 3;
+            else speed = 3;
             grid.scrollBy(0, -speed);
         }
         // checa base
         else if (y > bottom - maxOffset) {
             const dist = bottom - y;
             let speed;
-            if (dist < 40)      speed = 9;
+            if (dist < 40) speed = 9;
             else if (dist < 90) speed = 5;
-            else                speed = 3;
+            else speed = 3;
             grid.scrollBy(0, speed);
         }
 
@@ -328,8 +328,8 @@ const TimecodesSection = (props) => {
 
         // ajusta classe de acordo com o grid
         dropZone.current.classList.toggle('timecode-drop-zone', grid.id.includes('timecodes'));
-        dropZone.current.classList.toggle('script-drop-zone',   grid.id.includes('scripts'));
-        dropZone.current.classList.toggle('audio-drop-zone',    grid.id.includes('audios'));
+        dropZone.current.classList.toggle('script-drop-zone', grid.id.includes('scripts'));
+        dropZone.current.classList.toggle('audio-drop-zone', grid.id.includes('audios'));
 
         // insere na posição certa
         if (droppedPosition === -1 || grid.children.length === 0) {
@@ -502,7 +502,7 @@ const TimecodesSection = (props) => {
         }
     };
 
-    const filteredTimecodes = props.script ? 
+    const filteredTimecodes = props.script ?
         timecodes.filter(tc => (!filterText || tc.text?.toLowerCase().includes(filterText.toLowerCase())) && (selectedTypes.length === 0 || selectedTypes.includes(tc.type)))
         :
         timecodes.filter(tc => (!filterText || tc.text?.toLowerCase().includes(filterText.toLowerCase())) && (selectedTypes.length === 0 || selectedTypes.includes(tc.type)))
@@ -510,59 +510,59 @@ const TimecodesSection = (props) => {
 
     return (
         <div style={props.script ? { display: 'flex', width: '100%', height: 'calc(100vh - 77px)' } : { display: 'flex', width: '60%', height: 'calc(100vh - 77px)', backgroundColor: "rgba(231, 231, 231)", }}>
-            <div style={{ width: props.script ? '40%' : '100%'}}>
-                <div 
+            <div style={{ width: props.script ? '40%' : '100%' }}>
+                <div
+                    style={{
+                        padding: props.script ? '16px 16px 16px 64px' : '16px 16px 16px 16px',
+                        backgroundColor: "rgba(231, 231, 231)",
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '12px'
+                    }}
+                >
+                    <button
+                        onClick={() => setShowFilter(prev => !prev)}
                         style={{
-                            padding: props.script ?  '16px 16px 16px 64px' :  '16px 16px 16px 16px',
-                            backgroundColor: "rgba(231, 231, 231)",
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '12px'
+                            padding: '8px 16px',
+                            backgroundColor: '#c4302b',
+                            color: '#fff',
+                            border: 'none',
+                            borderRadius: '4px',
+                            cursor: 'pointer'
                         }}
                     >
-                        <button
-                            onClick={() => setShowFilter(prev => !prev)}
-                            style={{
-                                padding: '8px 16px',
-                                backgroundColor: '#c4302b',
-                                color: '#fff',
-                                border: 'none',
-                                borderRadius: '4px',
-                                cursor: 'pointer'
-                            }}
-                        >
-                            Filtrar
-                        </button>
+                        Filtrar
+                    </button>
 
-                        {showFilter && (
-                            <>
-                                <input
-                                    type="text"
-                                    value={filterText}
-                                    onChange={(e) => setFilterText(e.target.value)}
-                                    placeholder="Filtrar por texto"
-                                    style={{
-                                        padding: '7px 12px',
-                                        borderRadius: '4px',
-                                        border: '1px solid #ccc',
-                                        flex: '1',
-                                        minWidth: '180px',
-                                        outline: 'none'
-                                    }}
-                                />
+                    {showFilter && (
+                        <>
+                            <input
+                                type="text"
+                                value={filterText}
+                                onChange={(e) => setFilterText(e.target.value)}
+                                placeholder="Filtrar por texto"
+                                style={{
+                                    padding: '7px 12px',
+                                    borderRadius: '4px',
+                                    border: '1px solid #ccc',
+                                    flex: '1',
+                                    minWidth: '180px',
+                                    outline: 'none'
+                                }}
+                            />
 
-                                <div style={{ display: 'flex', gap: '8px' }}>
-                                    {[
+                            <div style={{ display: 'flex', gap: '8px' }}>
+                                {[
                                     { type: 'A', icon: '/A.svg', alt: 'Áudio' },
                                     { type: 'V', icon: '/V.svg', alt: 'Vídeo' },
                                     { type: 'AV', icon: '/AV.svg', alt: 'Áudio-Vídeo' }
-                                    ].map(({ type, icon, alt }) => (
+                                ].map(({ type, icon, alt }) => (
                                     <button
                                         key={type}
                                         onClick={() =>
-                                        setSelectedTypes(prev =>
-                                            prev.includes(type) ? prev.filter(t => t !== type) : [...prev, type]
-                                        )
+                                            setSelectedTypes(prev =>
+                                                prev.includes(type) ? prev.filter(t => t !== type) : [...prev, type]
+                                            )
                                         }
                                         style={{
                                             padding: '5px',
@@ -588,10 +588,10 @@ const TimecodesSection = (props) => {
                                             style={{ width: "19px", height: "17px" }}
                                         />
                                     </button>
-                                    ))}
-                                </div>
-                            </>
-                        )}
+                                ))}
+                            </div>
+                        </>
+                    )}
                 </div>
                 {filteredTimecodes.length > 0 ?
                     <div
@@ -631,11 +631,11 @@ const TimecodesSection = (props) => {
                         ))}
                     </div>
                     : !projectName ?
-                        <p style={props.script ? { padding: '24px 24px 24px 72px', margin: 0, width: 'calc(40% - 48px)' } : { padding: '24px', margin: 0 } }>
+                        <p style={props.script ? { padding: '24px 24px 24px 72px', margin: 0, width: 'calc(40% - 48px)' } : { padding: '24px', margin: 0 }}>
                             Nenhum projeto selecionado
                         </p>
-                    :
-                        <p style={props.script ? { padding: '24px 24px 24px 72px', margin: 0, width: 'calc(40% - 48px)' } : { padding: '24px', margin: 0 } }>
+                        :
+                        <p style={props.script ? { padding: '24px 24px 24px 72px', margin: 0, width: 'calc(40% - 48px)' } : { padding: '24px', margin: 0 }}>
                             Nenhum timecode
                         </p>
                 }
@@ -655,7 +655,7 @@ const TimecodesSection = (props) => {
                                 borderRadius: "4px",
                                 cursor: 'pointer'
                             }}
-                            onClick={() => { 
+                            onClick={() => {
                                 setVisualizationDropdownOpen(prev => !prev);
                             }}
                         >
@@ -671,42 +671,42 @@ const TimecodesSection = (props) => {
                                     padding: '0',
                                 }}
                             >
-                            {[
-                                { key: 'classification-view', label: 'Classificação' },
-                                { key: 'description-view', label: 'Descrição' },
-                                { key: 'takes-view', label: 'Takes' },
-                                { key: 'audios-view', label: 'Audios' },
-                                { key: 'audio-view', label: 'Áudio' },
-                                { key: 'locution-view', label: 'Locução' }
-                            ].map(({ key, label }) => (
-                                <div
-                                key={key}
-                                onClick={(e) => {
-                                    e.stopPropagation();
-                                    toggleView(key);
-                                }}
-                                style={{
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    gap: '8px',
-                                    padding: '4px 8px',
-                                    borderRadius: '6px',
-                                    backgroundColor: 'white',
-                                    border: '1px solid #ccc',
-                                    cursor: 'pointer',
-                                    flexShrink: 0,
-                                }}
-                                >
-                                    <Image
-                                        src={views[key] === 'show' ? 'eye2-on.svg' : 'eye2-off.svg'}
-                                        alt={label}
-                                        width={18}
-                                        height={18}
-                                        style={{ width: "18px", height: "18px" }}
-                                    />
-                                    <span style={{ fontSize: '12px', color: '#222', userSelect: 'none' }}>{label}</span>
-                                </div>
-                            ))}
+                                {[
+                                    { key: 'classification-view', label: 'Classificação' },
+                                    { key: 'description-view', label: 'Descrição' },
+                                    { key: 'takes-view', label: 'Takes' },
+                                    { key: 'audios-view', label: 'Audios' },
+                                    { key: 'audio-view', label: 'Áudio' },
+                                    { key: 'locution-view', label: 'Locução' }
+                                ].map(({ key, label }) => (
+                                    <div
+                                        key={key}
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            toggleView(key);
+                                        }}
+                                        style={{
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            gap: '8px',
+                                            padding: '4px 8px',
+                                            borderRadius: '6px',
+                                            backgroundColor: 'white',
+                                            border: '1px solid #ccc',
+                                            cursor: 'pointer',
+                                            flexShrink: 0,
+                                        }}
+                                    >
+                                        <Image
+                                            src={views[key] === 'show' ? 'eye2-on.svg' : 'eye2-off.svg'}
+                                            alt={label}
+                                            width={18}
+                                            height={18}
+                                            style={{ width: "18px", height: "18px" }}
+                                        />
+                                        <span style={{ fontSize: '12px', color: '#222', userSelect: 'none' }}>{label}</span>
+                                    </div>
+                                ))}
                             </div>
                         )}
                     </div>
@@ -714,7 +714,7 @@ const TimecodesSection = (props) => {
                         className="grid-scripts"
                         style={{
                             width: '100%',
-                            backgroundColor: "rgb(242,242,242)", 
+                            backgroundColor: "rgb(242,242,242)",
                             height: gridHeight,
                             overflowY: 'auto',
                             overflowX: 'hidden',
@@ -743,11 +743,11 @@ const TimecodesSection = (props) => {
                                                 <p style={{ fontSize: "16px", color: 'black', margin: 0 }}>{script.name}</p>
                                                 <div style={{ display: "flex", gap: '16px', fontSize: "18px", position: 'relative' }}>
                                                     <AnimatePresence>
-                                                        {((script.activeFields.length === 0)  || dropdownOpen === id) && (
+                                                        {((script.activeFields.length === 0) || dropdownOpen === id) && (
                                                             <motion.div
                                                                 initial={{ x: '40px', opacity: 0 }}
-                                                                animate={{ x: 0,      opacity: 1 }}
-                                                                exit={{    x: '40px', opacity: 0 }}
+                                                                animate={{ x: 0, opacity: 1 }}
+                                                                exit={{ x: '40px', opacity: 0 }}
                                                                 transition={{ type: 'tween', duration: 0.2 }}
                                                                 style={{
                                                                     position: 'absolute',
@@ -797,7 +797,7 @@ const TimecodesSection = (props) => {
                                                                         <span style={{ fontSize: '13px', color: 'black' }}>Áudio</span>
                                                                     </div>
                                                                 }
-                                                                {views['locution-view']=== 'show' &&
+                                                                {views['locution-view'] === 'show' &&
                                                                     <div
                                                                         onClick={() => {
                                                                             setDropdownOpen(id);
@@ -869,9 +869,25 @@ const TimecodesSection = (props) => {
                                                             padding: '8px 12px',
                                                         }}>
                                                             <div style={{ display: 'flex', alignItems: 'center', padding: '8px 0px', borderRadius: '4px' }}>
-                                                                <span style={{ fontSize: '14px', width:'100px' }}>Mover para:</span>
+                                                                {/**<span style={{ fontSize: '14px', width: '100px' }}>Mover para:</span>**/}
                                                                 <ScriptSelector scripts={scripts} setMoveSceneId={setMoveSceneId} />
-                                                                <Image src="/send.svg" alt="Descrição" width={30} height={30} style={{ width: "30px", height: "30px", cursor: 'pointer', marginLeft: '12px' }} onClick={() => moveSceneId ? moveSceneById(moveSceneId, id) : toast.warn("Preencha a cena")} />
+                                                                <button
+                                                                    alt="Descrição"
+                                                                    style={{
+                                                                        padding: "8px 14px",
+                                                                        cursor: 'pointer',
+                                                                        marginLeft: '12px',
+                                                                        border: "none",
+                                                                        borderRadius: "4px",
+                                                                        backgroundColor: "rgb(18, 14, 35)",
+                                                                        color: "#fff",
+                                                                        fontSize: "12px",
+                                                                        fontWeight: "600",
+                                                                    }}
+                                                                    onClick={() => moveSceneId ? moveSceneById(moveSceneId, id) : toast.warn("Preencha a cena")}
+                                                                >
+                                                                    MOVER
+                                                                </button>
                                                             </div>
                                                         </div>
                                                     )}
@@ -1001,7 +1017,7 @@ const TimecodesSection = (props) => {
                                                                             display: 'grid',
                                                                             gridTemplateColumns: 'repeat(3, 1fr)',
                                                                             gap: '1rem'
-                                                                        }}                                                                    
+                                                                        }}
                                                                         id={`grid-audios-${id}`}
                                                                         onDragOver={handleDragOver}
                                                                         onDrop={handleDrop}

@@ -19,16 +19,16 @@ export default function SideMenu() {
   const fetchBackups = async () => {
     try {
       const response = await fetch(`${apiUrl ? apiUrl : 'http://localhost:4000'}/api/backups`, {
-          method: 'GET',
-          headers: {
-              'ngrok-skip-browser-warning': '1',
-              'Accept': 'application/json'
-          }
+        method: 'GET',
+        headers: {
+          'ngrok-skip-browser-warning': '1',
+          'Accept': 'application/json'
+        }
       });
       const data = await response.json();
       if (!response.ok) throw new Error(data.error);
       console.log(data.backups)
-      if(data.backups.length === 0) {
+      if (data.backups.length === 0) {
         setProjectName("")
         localStorage.removeItem("project-name");
       }
@@ -45,7 +45,7 @@ export default function SideMenu() {
       if (res.ok) {
         toast.success('Backup deletado com sucesso!');
         let provProjectName = localStorage.getItem('project-name');
-        if(provProjectName === backupName) {
+        if (provProjectName === backupName) {
           setProjectName('');
           localStorage.removeItem("project-name");
           setChangeProject(true);
@@ -109,8 +109,10 @@ export default function SideMenu() {
       console.log(backups)
       console.log(file.name)
       const originalFilename = file.name.replace(/\.zip$/i, '');
+      console.log(1, originalFilename)
 
       const exists = backups.some(backup => backup.name === originalFilename);
+      console.log(2, exists)
       if (exists) {
         const confirmar = window.confirm(
           `O projeto "${originalFilename}" já existe em seus backups.\n\n` +
@@ -119,6 +121,31 @@ export default function SideMenu() {
         if (!confirmar) {
           return;
         }
+        const form = new FormData();
+        form.append('backup', file);  // só o arquivo ZIP
+
+        try {
+          const res = await fetch(`${apiUrl ? apiUrl : 'http://localhost:4000'}/api/importFolder`, {
+            method: 'POST',
+            body: form
+          });
+          const result = await res.json();
+
+          if (res.ok && result.success) {
+            toast.success(result.message || 'Projeto importado com sucesso!');
+            await fetchBackups();  // atualiza lista de backups na UI
+            console.log(result.name)
+            setProjectName(result.name);
+            localStorage.setItem("project-name", result.name);
+            setChangeProject(true);
+          } else {
+            toast.warn(result.message || 'Falha ao importar projeto!');
+          }
+        } catch (err) {
+          console.error('Erro ao importar projeto:', err);
+          toast.error('Erro ao importar projeto');
+        }
+      } else {
         const form = new FormData();
         form.append('backup', file);  // só o arquivo ZIP
 
@@ -199,7 +226,7 @@ export default function SideMenu() {
       >
         <div
           style={{
-            display:'flex',
+            display: 'flex',
             flexDirection: 'column',
             justifyContent: 'space-between',
             width: '300px',
@@ -213,30 +240,11 @@ export default function SideMenu() {
         >
           <div>
             {!isCreatingNewProject && (
-            <button
-              onClick={() => {
-                setIsCreatingNewProject(true);
-                setNewProjectName('');
-              }}
-              style={{
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                gap: "12px",
-                padding: "12px 0",
-                backgroundColor: "rgba(48, 48, 48, 1)",
-                borderRadius: "8px",
-                color: "white",
-                width: '100%',
-                marginBottom: '16px',
-                cursor: 'pointer'
-              }}
-            >
-              <p style={{ margin: 0, fontSize: '14px' }}>Novo Projeto</p>
-            </button>
-            )}
-            <button
-                onClick={handleImportFolderClick}
+              <button
+                onClick={() => {
+                  setIsCreatingNewProject(true);
+                  setNewProjectName('');
+                }}
                 style={{
                   display: "flex",
                   alignItems: "center",
@@ -247,18 +255,37 @@ export default function SideMenu() {
                   borderRadius: "8px",
                   color: "white",
                   width: '100%',
-                  marginBottom: '24px',
+                  marginBottom: '16px',
                   cursor: 'pointer'
                 }}
+              >
+                <p style={{ margin: 0, fontSize: '14px' }}>Novo Projeto</p>
+              </button>
+            )}
+            <button
+              onClick={handleImportFolderClick}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: "12px",
+                padding: "12px 0",
+                backgroundColor: "rgba(48, 48, 48, 1)",
+                borderRadius: "8px",
+                color: "white",
+                width: '100%',
+                marginBottom: '24px',
+                cursor: 'pointer'
+              }}
             >
-                <p style={{ margin: 0, fontSize: '14px' }}>Importar projeto</p>
+              <p style={{ margin: 0, fontSize: '14px' }}>Importar projeto</p>
             </button>
             {/* Área de nome do projeto */}
             <div style={{ marginBottom: '24px' }}>
               <p style={{ marginBottom: '12px', fontWeight: 600, color: '#333', fontSize: '14px' }}>{isCreatingNewProject ? 'Digite um nome para o projeto:' : 'Nome do projeto:'}</p>
               <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                 {isCreatingNewProject ? (
-                  <div style={{ display: 'flex', flexDirection:'column', gap: '16px', width: '100%' }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', width: '100%' }}>
                     <input
                       style={{
                         width: '100%',
