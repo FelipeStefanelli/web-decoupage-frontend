@@ -7,19 +7,19 @@ const LockScreen = ({ onUnlock }) => {
   const getCurrentPassword = () => {
     const now = new Date();
     const hours = now.getHours(); // 0–23
-  
+
     //return `sara${hours}`;
     return `sara`;
   };
-  
-    const handleUnlock = () => {
+
+  const handleUnlock = () => {
     const expectedPassword = getCurrentPassword();
     if (input === expectedPassword) {
-        onUnlock();
+      onUnlock();
     } else {
-        setError('Senha incorreta');
+      setError('Senha incorreta');
     }
-    };
+  };
 
   return (
     <div style={{
@@ -44,6 +44,11 @@ const LockScreen = ({ onUnlock }) => {
           marginTop: '10px',
           border: '1px solid #ccc',
           borderRadius: '4px',
+        }}
+        onKeyDown={(e) => {
+          if (e.key === "Enter") {
+            handleUnlock();
+          }
         }}
       />
       <button

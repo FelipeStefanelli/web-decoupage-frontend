@@ -135,7 +135,7 @@ const HeaderScriptPreview = ({ contentRef, data, projectName, exportDate, views 
                       </div>
                     )}
                     {script.activeFields.includes('audios') && views['audios-view'] === 'show' && renderAudios(script, id)}
-                    {script.timecodes.filter(t => t.type === 'AV').map((t, tid) => renderAV(t, tid, id, base64Map))}
+                    {script.activeFields.includes('audios') && views['audios-view'] === 'show' && script.timecodes.filter(t => t.type === 'AV').map((t, tid) => renderAV(t, tid, id, base64Map))}
                   </div>
                 </div>
               )}

@@ -17,11 +17,7 @@ const TimecodeType = ({ id, timecode, setActiveMenu, updateTimecode, activeMenu,
                 position: "relative",
                 display: "flex",
                 alignItems: "center",
-                height: "28px",
                 margin: "6px 0",
-                borderTop: "1px solid rgba(158, 156, 168, 1)",
-                borderBottom: "1px solid rgba(158, 156, 168, 1)",
-                borderRight: "1px solid rgba(158, 156, 168, 1)",
                 borderTopRightRadius: activeMenu || !timecode.type ? "0" : "4px",
                 borderBottomRightRadius: activeMenu || !timecode.type ? "0" : "4px",
                 backgroundColor: timecode.type === "V" ? "rgba(221, 229, 236, 1)"
@@ -36,28 +32,36 @@ const TimecodeType = ({ id, timecode, setActiveMenu, updateTimecode, activeMenu,
                 style={{
                     cursor: readOnly || timecode.type === 'image' ? "text" : "pointer",
                     color: "rgba(158, 156, 168, 1)",
-                    padding: "6px 8px",
+                    borderTop: "1px solid rgba(158, 156, 168, 1)",
+                    borderBottom: "1px solid rgba(158, 156, 168, 1)",
+                    padding: "5px 7px",
                     fontSize: "15px",
                     fontWeight: "800",
-                    borderRight: timecode.type ? "1px solid rgba(158, 156, 168, 1)" : "",
+                    borderRight: "1px solid rgba(158, 156, 168, 1)",
                     userSelect: "none",
                     margin: 0,
-                    pointerEvents: readOnly ? 'none' :'auto'
+                    height: "100%",
+                    pointerEvents: readOnly ? 'none' : 'auto'
                 }}
             >
                 {id + 1}
             </p>
-            {timecode.type && (
+            {timecode.type && activeMenu !== timecode.id && (
                 <span>
                     {timecode.type === "V" ?
                         <div
                             style={{
                                 display: "flex",
                                 alignItems: "center",
-                                height: "20px",
+                                height: "100%",
                                 padding: "6px",
                                 cursor: readOnly ? "text" : "pointer",
                                 userSelect: "none",
+                                borderTop: "1px solid rgba(158, 156, 168, 1)",
+                                borderBottom: "1px solid rgba(158, 156, 168, 1)",
+                                borderRight: "1px solid rgba(158, 156, 168, 1)",
+                                borderTopRightRadius: "4px",
+                                borderBottomRightRadius: "4px",
                             }}
                         >
                             <Image
@@ -74,10 +78,15 @@ const TimecodeType = ({ id, timecode, setActiveMenu, updateTimecode, activeMenu,
                                 style={{
                                     display: "flex",
                                     alignItems: "center",
-                                    height: "20px",
+                                    height: "100%",
                                     padding: "6px",
                                     cursor: readOnly ? "text" : "pointer",
                                     userSelect: "none",
+                                    borderTop: "1px solid rgba(158, 156, 168, 1)",
+                                    borderBottom: "1px solid rgba(158, 156, 168, 1)",
+                                    borderRight: "1px solid rgba(158, 156, 168, 1)",
+                                    borderTopRightRadius: "4px",
+                                    borderBottomRightRadius: "4px",
                                 }}
                             >
                                 <Image
@@ -94,10 +103,15 @@ const TimecodeType = ({ id, timecode, setActiveMenu, updateTimecode, activeMenu,
                                     style={{
                                         display: "flex",
                                         alignItems: "center",
-                                        height: "20px",
+                                        height: "100%",
                                         padding: "6px",
                                         cursor: readOnly ? "text" : "pointer",
                                         userSelect: "none",
+                                        borderTop: "1px solid rgba(158, 156, 168, 1)",
+                                        borderBottom: "1px solid rgba(158, 156, 168, 1)",
+                                        borderRight: "1px solid rgba(158, 156, 168, 1)",
+                                        borderTopRightRadius: "4px",
+                                        borderBottomRightRadius: "4px",
                                     }}
                                 >
                                     <Image
@@ -110,35 +124,38 @@ const TimecodeType = ({ id, timecode, setActiveMenu, updateTimecode, activeMenu,
                                     />
                                 </div>
                                 : timecode.type === "image" ?
-                                <div
-                                    style={{
-                                        display: "flex",
-                                        alignItems: "center",
-                                        height: "20px",
-                                        padding: "6px",
-                                        cursor: readOnly ? "text" : "pointer",
-                                        userSelect: "none",
-                                    }}
-                                >
-                                    <Image
-                                        aria-hidden
-                                        src="/image.svg"
-                                        alt="Image icon"
-                                        width={18}
-                                        height={17}
-                                        style={{ width: "18px", height: "17px" }}
-                                    />
-                                </div>
-                                :
-                                null
+                                    <div
+                                        style={{
+                                            display: "flex",
+                                            alignItems: "center",
+                                            height: "100%",
+                                            padding: "6px",
+                                            cursor: readOnly ? "text" : "pointer",
+                                            userSelect: "none",
+                                            borderTop: "1px solid rgba(158, 156, 168, 1)",
+                                            borderBottom: "1px solid rgba(158, 156, 168, 1)",
+                                            borderRight: "1px solid rgba(158, 156, 168, 1)",
+                                            borderTopRightRadius: "4px",
+                                            borderBottomRightRadius: "4px",
+                                        }}
+                                    >
+                                        <Image
+                                            aria-hidden
+                                            src="/image.svg"
+                                            alt="Image icon"
+                                            width={18}
+                                            height={17}
+                                            style={{ width: "18px", height: "17px" }}
+                                        />
+                                    </div>
+                                    :
+                                    null
                     }
                 </span>
             )}
             {(activeMenu === timecode.id || !timecode.type) && !readOnly && (
                 <div
                     style={{
-                        position: "absolute",
-                        left: "35px",
                         width: "96px",
                         display: "flex",
                         backgroundColor: "white"
@@ -149,7 +166,7 @@ const TimecodeType = ({ id, timecode, setActiveMenu, updateTimecode, activeMenu,
                         style={{
                             display: "flex",
                             alignItems: "center",
-                            height: "16px",
+                            height: "100%",
                             padding: "6px",
                             cursor: "pointer",
                             userSelect: "none",
@@ -162,9 +179,9 @@ const TimecodeType = ({ id, timecode, setActiveMenu, updateTimecode, activeMenu,
                             aria-hidden
                             src="/V.svg"
                             alt="Vídeo icon"
-                            width={16}
-                            height={16}
-                            style={{ width: "16px", height: "16px" }}
+                            width={18}
+                            height={17}
+                            style={{ width: "18px", height: "17px" }}
                         />
                     </div>
                     <div
@@ -172,7 +189,7 @@ const TimecodeType = ({ id, timecode, setActiveMenu, updateTimecode, activeMenu,
                         style={{
                             display: "flex",
                             alignItems: "center",
-                            height: "16px",
+                            height: "100%",
                             padding: "6px",
                             cursor: "pointer",
                             userSelect: "none",
@@ -185,9 +202,9 @@ const TimecodeType = ({ id, timecode, setActiveMenu, updateTimecode, activeMenu,
                             aria-hidden
                             src="/A.svg"
                             alt="Áudio icon"
-                            width={16}
-                            height={16}
-                            style={{ width: "16px", height: "16px" }}
+                            width={18}
+                            height={17}
+                            style={{ width: "18px", height: "17px" }}
                         />
                     </div>
                     <div
@@ -195,7 +212,7 @@ const TimecodeType = ({ id, timecode, setActiveMenu, updateTimecode, activeMenu,
                         style={{
                             display: "flex",
                             alignItems: "center",
-                            height: "16px",
+                            height: "100%",
                             padding: "6px",
                             cursor: "pointer",
                             userSelect: "none",
@@ -210,9 +227,9 @@ const TimecodeType = ({ id, timecode, setActiveMenu, updateTimecode, activeMenu,
                             aria-hidden
                             src="/AV.svg"
                             alt="AV icon"
-                            width={16}
-                            height={16}
-                            style={{ width: "16px", height: "16px" }}
+                            width={18}
+                            height={17}
+                            style={{ width: "18px", height: "17px" }}
                         />
                     </div>
                 </div>

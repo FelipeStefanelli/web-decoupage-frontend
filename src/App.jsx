@@ -47,7 +47,7 @@ function AnimatedRoutes() {
 }
 
 function App() {
-  const [unlocked, setUnlocked] = useState(true);
+  const [unlocked, setUnlocked] = useState(false);
   return (
     <VisibilityProvider>
     <HashRouter>

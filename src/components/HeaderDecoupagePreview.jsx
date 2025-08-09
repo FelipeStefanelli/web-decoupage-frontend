@@ -273,9 +273,9 @@ const HeaderDecoupagePreview = ({ contentRef, data, projectName, exportDate }) =
                         {timecode.text &&
                           <p
                             style={{
-                              width: "calc(100% - 34px)",
+                              width: "calc(100% - 28px)",
                               padding: "10px 8px 12px",
-                              margin: "2px 16px 4px 16px",
+                              margin: "2px 12px 4px 12px",
                               fontSize: "12px",
                               lineHeight: "12px",
                               fontWeight: 500,
