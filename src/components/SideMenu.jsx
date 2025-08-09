@@ -182,7 +182,7 @@ export default function SideMenu() {
         position: 'absolute',
         top: '77px',
         left: 0,
-        height: 'calc(100vh - 78.4px)',
+        height: 'calc(100vh - 77px)',
         zIndex: 40,
         display: 'flex',
         pointerEvents: isOpen ? 'auto' : 'none',

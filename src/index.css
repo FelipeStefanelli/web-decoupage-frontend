@@ -15,6 +15,7 @@
 body {
   margin: 0;
   font-family: 'GeistMonoVF', Arial, Helvetica, sans-serif;
+  overflow: hidden
 }
 
 
@@ -23,8 +24,9 @@ button {
 }
 
 @media print {
+
   /* Remove o max-height e o overflow apenas quando for gerar o PDF */
-  .fade-in > div {
+  .fade-in>div {
     max-height: none !important;
     overflow: visible !important;
   }

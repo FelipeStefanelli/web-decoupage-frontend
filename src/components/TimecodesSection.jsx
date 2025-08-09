@@ -38,7 +38,7 @@ const TimecodesSection = (props) => {
         const updateHeight = () => {
             const filterHeight = filterRef.current?.offsetHeight || 0;
             console.log(filterHeight)
-            const filterPlusHeader = filterHeight + 78;
+            const filterPlusHeader = filterHeight + 82;
             setGridHeight(`calc(100vh - ${filterPlusHeader}px)`);
         };
         updateHeight();
@@ -509,7 +509,7 @@ const TimecodesSection = (props) => {
         ;
 
     return (
-        <div style={props.script ? { display: 'flex', width: '100%', height: 'calc(100vh - 78.4px)' } : { display: 'flex', width: '60%', height: 'calc(100vh - 78.4px)', backgroundColor: "rgba(231, 231, 231)", }}>
+        <div style={props.script ? { display: 'flex', width: '100%', height: 'calc(100vh - 77px)' } : { display: 'flex', width: '60%', height: 'calc(100vh - 77px)', backgroundColor: "rgba(231, 231, 231)", }}>
             <div style={{ width: props.script ? '40%' : '100%'}}>
                 <div 
                         style={{
@@ -641,7 +641,7 @@ const TimecodesSection = (props) => {
                 }
             </div>
             {props.script &&
-                <div style={{ width: '60%', height: 'calc(100vh - 78.4px)' }}>
+                <div style={{ width: '60%', height: 'calc(100vh - 77px)' }}>
                     <div ref={filterRef} style={{ backgroundColor: "rgb(242, 242, 242)", padding: '16px 16px 12px 16px', display: 'flex', alignItems: 'center', gap: '12px' }}>
                         <button
                             style={{

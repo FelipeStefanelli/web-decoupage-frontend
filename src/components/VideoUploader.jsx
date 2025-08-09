@@ -432,7 +432,7 @@ const VideoUploader = () => {
   };
   const blurNextTick = () => requestAnimationFrame(blurIfFocused);
   return (
-    <div style={{ backgroundColor: "rgba(27, 27, 27, 1)", minHeight: "calc(100vh - 78.4px)", maxHeight: "calc(100vh - 78.4px)", paddingLeft: 48, width: '40%', display: 'flex', flexDirection: 'column', alignItems: 'center', boxSizing: 'border-box' }}>
+    <div style={{ backgroundColor: "rgba(27, 27, 27, 1)", minHeight: "calc(100vh - 77px)", maxHeight: "calc(100vh - 77px)", paddingLeft: 48, width: '40%', display: 'flex', flexDirection: 'column', alignItems: 'center', boxSizing: 'border-box' }}>
       <div style={{ width: 'calc(100% - 32px)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '16px', padding: '24px 16px 8px 16px' }}>
         <div style={{
           display: 'flex',
