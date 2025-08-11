@@ -10,6 +10,7 @@ const HeaderScriptPreview = ({ contentRef, data, projectName, exportDate, views 
   const [previewUrl, setPreviewUrl] = useState(null);
   const [base64Map, setBase64Map] = useState({});
   const [loading, setLoading] = useState(false);
+  const [isDataEmpty, setIsDataEmpty] = useState(false);
 
   const { apiUrl } = useVisibility();
   useEffect(() => {
@@ -44,7 +45,13 @@ const HeaderScriptPreview = ({ contentRef, data, projectName, exportDate, views 
       setLoading(false);
       setBase64Map(map);
     };
-    loadImages();
+    if (data.script.length > 0) {
+      setIsDataEmpty(false);
+      loadImages();
+    } else {
+      setIsDataEmpty(true);
+      setLoading(false);
+    }
   }, [data]);
 
 
@@ -89,16 +96,16 @@ const HeaderScriptPreview = ({ contentRef, data, projectName, exportDate, views 
           <Image src="/loading.svg" alt="Carregando" width={48} height={48} />
           :
           <>
-            {previewUrl ? (
-              <iframe
-                src={previewUrl}
-                title="Preview do PDF"
-                style={{ width: '100%', height: '100%', border: 'none' }}
-              />
-            )
-              :
-              <div>Adicione cenas ao roteiro para visualizar o preview.</div>
+            {previewUrl &&
+              (
+                <iframe
+                  src={previewUrl}
+                  title="Preview do PDF"
+                  style={{ width: '100%', height: '100%', border: 'none' }}
+                />
+              )
             }
+            {isDataEmpty && <div>Adicione cenas ao roteiro para visualizar o preview.</div>}
           </>
         }
       </div>

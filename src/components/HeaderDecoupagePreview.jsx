@@ -12,7 +12,8 @@ const HeaderDecoupagePreview = ({ contentRef, data, projectName, exportDate }) =
   const [filterText, setFilterText] = useState('');
   const [debouncedFilterText, setDebouncedFilterText] = useState("");
   const [selectedTypes, setSelectedTypes] = useState([]);
-  const [showFilter, setShowFilter] = useState(false);
+  const [isDataEmpty, setIsDataEmpty] = useState(false);
+
   const { apiUrl } = useVisibility();
 
   useEffect(() => {
@@ -45,7 +46,13 @@ const HeaderDecoupagePreview = ({ contentRef, data, projectName, exportDate }) =
       setBase64Map(map);
     };
 
-    loadImagesAsBase64();
+    if (data.timecodes.length > 0) {
+      setIsDataEmpty(false);
+      loadImagesAsBase64();
+    } else {
+      setIsDataEmpty(true);
+      setLoading(false);
+    }
   }, [data]);
 
   useEffect(() => {
@@ -209,23 +216,22 @@ const HeaderDecoupagePreview = ({ contentRef, data, projectName, exportDate }) =
         </>
       </div>
       <div style={{ display: 'flex', width: '100%', height: 'calc(100% - 70px)' }}>
-        {loading ? (
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%', height: '100%' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%', height: '100%' }}>
+          {loading ? (
             <Image src="/loading.svg" alt="Carregando" width={48} height={48} />
-          </div>
-        ) : (
-          <>
-            {previewUrl ?
-              <iframe
-                src={`${previewUrl}#zoom=75`}
-                title="Preview do PDF"
-                style={{ width: '100%', height: 'calc(100%)', border: 'none' }}
-              />
-              :
-              <div>Adicione timecodes a decupagem para visualizar o preview.</div>
-            }
-          </>
-        )}
+          ) : (
+            <>
+              {previewUrl &&
+                <iframe
+                  src={`${previewUrl}#zoom=75`}
+                  title="Preview do PDF"
+                  style={{ width: '100%', height: 'calc(100%)', border: 'none' }}
+                />
+              }
+              {isDataEmpty && <div>Adicione timecodes a decupagem para visualizar o preview.</div>}
+            </>
+          )}
+        </div>
       </div>
       <div ref={contentRef} style={{ padding: "0 16px 16px 16px" }}>
         <div>
