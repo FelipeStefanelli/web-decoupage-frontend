@@ -320,7 +320,7 @@ const VideoUploader = () => {
 
     try {
       await navigator.clipboard.writeText(textContent);
-      alert('Texto copiado para a área de transferência!');
+      toast('Texto copiado para a área de transferência!');
     } catch (err) {
       console.error('Erro ao copiar para a área de transferência: ', err);
     }
@@ -329,7 +329,7 @@ const VideoUploader = () => {
   const copyEachToClipboard = async (textContent) => {
     try {
       await navigator.clipboard.writeText(textContent);
-      alert('Texto copiado para a área de transferência!');
+      toast('Texto copiado para a área de transferência!');
     } catch (err) {
       console.error('Erro ao copiar para a área de transferência: ', err);
     }

@@ -5,6 +5,7 @@ import TimecodeInput from "./TimecodeInput";
 import TimecodeType from "./TimecodeType";
 import ReactStars from "react-stars";
 import { useVisibility } from '@/contexts/VisibilityContext';
+import { toast } from 'react-toastify';
 
 // cache global por id do timecode (persiste no módulo)
 const imageBlobCache = new Map();
@@ -313,10 +314,10 @@ const TimecodeCard = ({
               height={18}
               style={{ width: "18px", height: "18px", cursor: "pointer" }}
               onClick={async () => {
-                const textContent = timecode.mediaName;
+                const textContent = `${timecode.mediaName} - ${formatTimecode(timecode.inTime)} ~ ${formatTimecode(timecode.outTime)}`;
                 try {
                   await navigator.clipboard.writeText(textContent);
-                  alert('Texto copiado para a área de transferência!');
+                  toast('Texto copiado para a área de transferência!');
                 } catch (err) {
                   console.error('Erro ao copiar para a área de transferência: ', err);
                 }
