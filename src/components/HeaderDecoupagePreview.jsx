@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState, useCallback, useRef } from "react";
 import Image from "@/components/Image";
 import { formatTimecode } from "@/utils/utils";
 import { useVisibility } from '@/contexts/VisibilityContext';
@@ -10,83 +10,167 @@ const HeaderDecoupagePreview = ({ contentRef, data, projectName, exportDate }) =
   const [previewUrl, setPreviewUrl] = useState(null);
   const [loading, setLoading] = useState(false);
   const [filterText, setFilterText] = useState('');
-  const [debouncedFilterText, setDebouncedFilterText] = useState("");
   const [selectedTypes, setSelectedTypes] = useState([]);
   const [isDataEmpty, setIsDataEmpty] = useState(false);
 
   const { apiUrl } = useVisibility();
 
+  const blobUrlCache = useRef(new Map());
+
   useEffect(() => {
     setLoading(true);
-    const loadImagesAsBase64 = async () => {
+
+    async function downscaleImage(blob, maxH) {
+      let bmp = null;
+      try {
+        bmp = await createImageBitmap(blob);
+      } catch {
+        bmp = null;
+      }
+
+      let w, h;
+      if (bmp) {
+        const ratio = bmp.height > maxH ? maxH / bmp.height : 1;
+        w = Math.round(bmp.width * ratio);
+        h = Math.round(bmp.height * ratio);
+      } else {
+        const img = await blobToImage(blob);
+        const ratio = img.naturalHeight > maxH ? maxH / img.naturalHeight : 1;
+        w = Math.round(img.naturalWidth * ratio);
+        h = Math.round(img.naturalHeight * ratio);
+      }
+
+      const canvas = document.createElement('canvas');
+      canvas.width = w; canvas.height = h;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) throw new Error('Canvas 2D context não disponível');
+
+      if (bmp) {
+        ctx.drawImage(bmp, 0, 0, w, h);
+        if (bmp.close) bmp.close();
+      } else {
+        const img = await blobToImage(blob);
+        ctx.drawImage(img, 0, 0, w, h);
+      }
+
+      const outBlob = await new Promise((resolve, reject) => {
+        if (canvas.toBlob) {
+          canvas.toBlob((b) => (b ? resolve(b) : reject(new Error('canvas.toBlob retornou null'))), 'image/jpeg', 0.72);
+        } else {
+          try {
+            const dataURL = canvas.toDataURL('image/jpeg', 0.72);
+            const b = dataURLToBlob(dataURL);
+            resolve(b);
+          } catch (err) {
+            reject(err);
+          }
+        }
+      });
+
+      return outBlob;
+    }
+
+    function blobToImage(blob) {
+      return new Promise((resolve, reject) => {
+        const url = URL.createObjectURL(blob);
+        const img = new Image();
+        img.decoding = 'async';
+        img.onload = () => { URL.revokeObjectURL(url); resolve(img); };
+        img.onerror = (e) => { URL.revokeObjectURL(url); reject(e); };
+        img.src = url;
+      });
+    }
+
+    function dataURLToBlob(dataURL) {
+      const [header, data] = dataURL.split(',');
+      const mime = header.match(/:(.*?);/)[1];
+      const bin = atob(data);
+      const len = bin.length;
+      const u8 = new Uint8Array(len);
+      for (let i = 0; i < len; i++) u8[i] = bin.charCodeAt(i);
+      return new Blob([u8], { type: mime });
+    }
+
+    const loadImagesAsBlobUrls = async () => {
       const map = {};
-      for (const timecode of data?.timecodes || []) {
-        const url = `${apiUrl ? apiUrl : 'http://localhost:4000'}${timecode.imageUrl}`;
-        try {
-          const res = await fetch(url, {
-            method: 'GET',
-            headers: {
-              'ngrok-skip-browser-warning': '1',
-              'Accept': 'application/json'
+      const timecodes = data?.timecodes || [];
+
+      if (!timecodes.length) {
+        setIsDataEmpty(true);
+        setBase64Map({});
+        setLoading(false);
+        return;
+      }
+
+      setIsDataEmpty(false);
+
+      // Limite de concorrência para evitar travar rede/CPU
+      const pool = 6;
+      let i = 0;
+
+      async function worker() {
+        while (i < timecodes.length) {
+          const idx = i++;
+          const t = timecodes[idx];
+          if (!t?.imageUrl || !t?.id) continue;
+
+          const fullUrl = `${apiUrl ? apiUrl : 'http://localhost:4000'}${t.imageUrl}`;
+          try {
+            // cache em memória para não refazer fetch/conversão
+            if (blobUrlCache.current.has(t.id)) {
+              const cached = blobUrlCache.current.get(t.id);
+              if (cached) map[t.id] = cached;
+              continue;
             }
-          });
-          const blob = await res.blob();
-          const reader = new FileReader();
-          const base64 = await new Promise((resolve) => {
-            reader.onloadend = () => resolve(reader.result);
-            reader.readAsDataURL(blob);
-          });
-          map[timecode.id] = base64;
-        } catch (e) {
-          setLoading(false);
-          console.warn(`Erro carregando imagem ${url}`, e);
+
+            const res = await fetch(fullUrl, {
+              method: 'GET',
+              headers: {
+                'ngrok-skip-browser-warning': '1',
+                'Accept': 'image/*'
+              }
+            });
+            if (!res.ok) throw new Error(`HTTP ${res.status}`);
+            const blob = await res.blob();
+
+            // downscale/compress para thumbs (altura máx 900px)
+            const compressed = await downscaleImage(blob, 900);
+            const url = URL.createObjectURL(compressed);
+
+            blobUrlCache.current.set(t.id, url);
+            map[t.id] = url;
+          } catch (e) {
+            console.warn(`Erro carregando imagem ${fullUrl}`, e);
+          }
         }
       }
-      setLoading(false);
+
+      await Promise.all(Array.from({ length: pool }, worker));
       setBase64Map(map);
-    };
-
-    if (data.timecodes.length > 0) {
-      setIsDataEmpty(false);
-      loadImagesAsBase64();
-    } else {
-      setIsDataEmpty(true);
       setLoading(false);
-    }
-  }, [data]);
-
-  useEffect(() => {
-    const handler = setTimeout(() => {
-      setDebouncedFilterText(filterText);
-    }, 3500);
-
-    return () => {
-      clearTimeout(handler); // limpa o timer se o usuário digitar novamente antes de 5s
     };
-  }, [filterText]);
 
-  useEffect(() => {
-    if (debouncedFilterText) {
-      console.log("Executando filtro:", debouncedFilterText);
-      generatePreview();
-    }
-  }, [debouncedFilterText]);
+    // dispara o carregamento
+    loadImagesAsBlobUrls();
+  }, [data, apiUrl]);
 
   const generatePreview = useCallback(async () => {
     if (!contentRef.current) return
+    setLoading(true);
 
     const element = contentRef.current
+    const SCALE = Math.min(3, Math.max(2, Math.ceil(window.devicePixelRatio || 2)));
+
     const opt = {
-      html2canvas: { scale: 2 },
+      html2canvas: { scale: SCALE },
       jsPDF: { unit: 'pt', format: 'a4', orientation: 'portrait' },
-      margin: [16, 0, 0, 0],
+      margin: [12, 0, 0, 0],
       pagebreak: {
         mode: ['css'],
         avoid: '.card-selector',
       }
     }
 
-    // gera o blob em vez de salvar direto
     const pdfBlob = await html2pdf()
       .from(element)
       .set(opt)
@@ -96,9 +180,8 @@ const HeaderDecoupagePreview = ({ contentRef, data, projectName, exportDate }) =
     const url = URL.createObjectURL(pdfBlob)
     setPreviewUrl(url)
     setLoading(false);
-    // libera URL antiga quando desmontar
     return () => previewUrl && URL.revokeObjectURL(previewUrl)
-  }, [contentRef, debouncedFilterText, selectedTypes]);
+  }, [contentRef]);
 
   useEffect(() => {
     if (Object.keys(base64Map).length > 0) {
@@ -121,7 +204,6 @@ const HeaderDecoupagePreview = ({ contentRef, data, projectName, exportDate }) =
 
   const filtered = filterArray(data.timecodes);
   const grouped = groupArray(filtered, 3);
-  console.log('grouped', grouped)
   const renderFilename = (filename, maxLength = 20) => {
     if (!filename) return "";
 
@@ -160,6 +242,7 @@ const HeaderDecoupagePreview = ({ contentRef, data, projectName, exportDate }) =
             Filtros
           </p>
           <input
+            name="text-filter"
             type="text"
             value={filterText}
             onChange={(e) => setFilterText(e.target.value)}
@@ -213,6 +296,20 @@ const HeaderDecoupagePreview = ({ contentRef, data, projectName, exportDate }) =
               </button>
             ))}
           </div>
+          <button
+          onClick={() => generatePreview()}
+            style={{
+              padding: "6px 12px",
+              backgroundColor: "rgb(196, 48, 43)",
+              fontWeight: "500",
+              color: "#fff",
+              border: "none",
+              borderRadius: "4px",
+              cursor: "pointer"
+            }}
+          >
+            Aplicar
+          </button>
         </>
       </div>
       <div style={{ display: 'flex', width: '100%', height: 'calc(100% - 70px)' }}>
@@ -252,7 +349,7 @@ const HeaderDecoupagePreview = ({ contentRef, data, projectName, exportDate }) =
           </div>
           <div
             style={{
-              padding: "12px 8px",
+              padding: "0 8px 12px 8px",
             }}
           >
             {grouped.map((group, groupId) => (
@@ -262,7 +359,7 @@ const HeaderDecoupagePreview = ({ contentRef, data, projectName, exportDate }) =
                 style={{
                   display: "flex",
                   gap: "12px",
-                  paddingBottom: "12px"
+                  paddingTop: "12px"
                 }}
               >
                 {group.map((timecode, id) => (
@@ -299,6 +396,7 @@ const HeaderDecoupagePreview = ({ contentRef, data, projectName, exportDate }) =
                         }}
                       >
                         <img
+                          loading="lazy"
                           src={base64Map[timecode.id] || `http://localhost:4000${timecode.imageUrl}`}
                           alt={`Thumbnail at ${timecode.inTime}`}
                           style={{
@@ -374,21 +472,23 @@ const HeaderDecoupagePreview = ({ contentRef, data, projectName, exportDate }) =
                               />
                             }
                           </div>
-                          <ReactStars
-                            value={timecode.rating}
-                            count={3}
-                            onChange={(newRating) => ratingChanged(timecode, newRating)}
-                            size={20}
-                            color1={"#b4b4b4"}
-                            color2={"#ffd700"}
-                          />
+                          <div style={{ marginBottom: "6px" }}>
+                            <ReactStars
+                              value={timecode.rating}
+                              count={3}
+                              onChange={(newRating) => ratingChanged(timecode, newRating)}
+                              size={20}
+                              color1={"#b4b4b4"}
+                              color2={"#ffd700"}
+                            />
+                          </div>
                         </div>
                         {timecode.text &&
                           <p
                             style={{
                               width: "calc(100% - 28px)",
                               padding: "10px 8px 12px",
-                              margin: "2px 12px 4px 12px",
+                              margin: "0 12px 4px 12px",
                               fontSize: "12px",
                               lineHeight: "12px",
                               fontWeight: 500,

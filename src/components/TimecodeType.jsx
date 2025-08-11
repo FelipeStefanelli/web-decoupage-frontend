@@ -17,7 +17,8 @@ const TimecodeType = ({ id, timecode, setActiveMenu, updateTimecode, activeMenu,
                 position: "relative",
                 display: "flex",
                 alignItems: "center",
-                margin: "6px 0",
+                margin: "6px 0 4px",
+                height: "30px",
                 borderTopRightRadius: activeMenu || !timecode.type ? "0" : "4px",
                 borderBottomRightRadius: activeMenu || !timecode.type ? "0" : "4px",
                 backgroundColor: timecode.type === "V" ? "rgba(221, 229, 236, 1)"
@@ -27,41 +28,49 @@ const TimecodeType = ({ id, timecode, setActiveMenu, updateTimecode, activeMenu,
 
             }}
         >
-            <p
+            <span
                 onClick={() => !readOnly && timecode.type !== 'image' && handleIdClick(timecode.id)}
                 style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
                     cursor: readOnly || timecode.type === 'image' ? "text" : "pointer",
                     color: "rgba(158, 156, 168, 1)",
-                    borderTop: "1px solid rgba(158, 156, 168, 1)",
-                    borderBottom: "1px solid rgba(158, 156, 168, 1)",
-                    padding: "5px 7px",
+                    padding: "0 7px",
                     fontSize: "15px",
+                    lineHeight: "15px",
                     fontWeight: "800",
+                    borderTop: "1px solid rgba(158, 156, 168, 1)",
                     borderRight: "1px solid rgba(158, 156, 168, 1)",
+                    borderBottom: "1px solid rgba(158, 156, 168, 1)",
                     userSelect: "none",
                     margin: 0,
-                    height: "100%",
+                    height: "30px",
+                    boxSizing: 'border-box',
                     pointerEvents: readOnly ? 'none' : 'auto'
                 }}
             >
                 {id + 1}
-            </p>
+            </span>
             {timecode.type && activeMenu !== timecode.id && (
-                <span>
+                <span style={{
+                    height: "30px",
+                    borderTop: "1px solid rgba(158, 156, 168, 1)",
+                    borderBottom: "1px solid rgba(158, 156, 168, 1)",
+                    borderRight: "1px solid rgba(158, 156, 168, 1)",
+                    borderTopRightRadius: "4px",
+                    borderBottomRightRadius: "4px",
+                    boxSizing: 'border-box',
+                }}>
                     {timecode.type === "V" ?
                         <div
                             style={{
                                 display: "flex",
                                 alignItems: "center",
-                                height: "100%",
+                                height: "calc(100% - 12px)",
                                 padding: "6px",
                                 cursor: readOnly ? "text" : "pointer",
                                 userSelect: "none",
-                                borderTop: "1px solid rgba(158, 156, 168, 1)",
-                                borderBottom: "1px solid rgba(158, 156, 168, 1)",
-                                borderRight: "1px solid rgba(158, 156, 168, 1)",
-                                borderTopRightRadius: "4px",
-                                borderBottomRightRadius: "4px",
                             }}
                         >
                             <Image
@@ -78,15 +87,10 @@ const TimecodeType = ({ id, timecode, setActiveMenu, updateTimecode, activeMenu,
                                 style={{
                                     display: "flex",
                                     alignItems: "center",
-                                    height: "100%",
+                                    height: "calc(100% - 12px)",
                                     padding: "6px",
                                     cursor: readOnly ? "text" : "pointer",
                                     userSelect: "none",
-                                    borderTop: "1px solid rgba(158, 156, 168, 1)",
-                                    borderBottom: "1px solid rgba(158, 156, 168, 1)",
-                                    borderRight: "1px solid rgba(158, 156, 168, 1)",
-                                    borderTopRightRadius: "4px",
-                                    borderBottomRightRadius: "4px",
                                 }}
                             >
                                 <Image
@@ -103,15 +107,10 @@ const TimecodeType = ({ id, timecode, setActiveMenu, updateTimecode, activeMenu,
                                     style={{
                                         display: "flex",
                                         alignItems: "center",
-                                        height: "100%",
+                                        height: "calc(100% - 12px)",
                                         padding: "6px",
                                         cursor: readOnly ? "text" : "pointer",
                                         userSelect: "none",
-                                        borderTop: "1px solid rgba(158, 156, 168, 1)",
-                                        borderBottom: "1px solid rgba(158, 156, 168, 1)",
-                                        borderRight: "1px solid rgba(158, 156, 168, 1)",
-                                        borderTopRightRadius: "4px",
-                                        borderBottomRightRadius: "4px",
                                     }}
                                 >
                                     <Image
@@ -128,15 +127,10 @@ const TimecodeType = ({ id, timecode, setActiveMenu, updateTimecode, activeMenu,
                                         style={{
                                             display: "flex",
                                             alignItems: "center",
-                                            height: "100%",
+                                            height: "calc(100% - 12px)",
                                             padding: "6px",
                                             cursor: readOnly ? "text" : "pointer",
                                             userSelect: "none",
-                                            borderTop: "1px solid rgba(158, 156, 168, 1)",
-                                            borderBottom: "1px solid rgba(158, 156, 168, 1)",
-                                            borderRight: "1px solid rgba(158, 156, 168, 1)",
-                                            borderTopRightRadius: "4px",
-                                            borderBottomRightRadius: "4px",
                                         }}
                                     >
                                         <Image
@@ -156,6 +150,7 @@ const TimecodeType = ({ id, timecode, setActiveMenu, updateTimecode, activeMenu,
             {(activeMenu === timecode.id || !timecode.type) && !readOnly && (
                 <div
                     style={{
+                        height: "30px",
                         width: "96px",
                         display: "flex",
                         backgroundColor: "white"
@@ -173,6 +168,7 @@ const TimecodeType = ({ id, timecode, setActiveMenu, updateTimecode, activeMenu,
                             borderTop: "1px solid rgba(158, 156, 168, 1)",
                             borderBottom: "1px solid rgba(158, 156, 168, 1)",
                             borderRight: "1px solid rgba(158, 156, 168, 1)",
+                            boxSizing: 'border-box',
                         }}
                     >
                         <Image
@@ -196,6 +192,7 @@ const TimecodeType = ({ id, timecode, setActiveMenu, updateTimecode, activeMenu,
                             borderTop: "1px solid rgba(158, 156, 168, 1)",
                             borderBottom: "1px solid rgba(158, 156, 168, 1)",
                             borderRight: "1px solid rgba(158, 156, 168, 1)",
+                            boxSizing: 'border-box',
                         }}
                     >
                         <Image
@@ -221,6 +218,7 @@ const TimecodeType = ({ id, timecode, setActiveMenu, updateTimecode, activeMenu,
                             borderRight: "1px solid rgba(158, 156, 168, 1)",
                             borderTopRightRadius: "4px",
                             borderBottomRightRadius: "4px",
+                            boxSizing: 'border-box',
                         }}
                     >
                         <Image

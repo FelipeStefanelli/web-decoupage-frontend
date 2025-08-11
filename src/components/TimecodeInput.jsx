@@ -54,6 +54,7 @@ const TimecodeInput = ({
 
   return (
     <textarea
+      name={`script-input-${timecode.id}`}
       ref={textareaRef}
       value={provValue}
       rows={1}

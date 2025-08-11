@@ -539,6 +539,7 @@ const TimecodesSection = (props) => {
                     {showFilter && (
                         <>
                             <input
+                                name="timecodes-text-filter"
                                 type="text"
                                 value={filterText}
                                 onChange={(e) => setFilterText(e.target.value)}

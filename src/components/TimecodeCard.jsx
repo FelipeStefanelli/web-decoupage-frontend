@@ -107,7 +107,7 @@ const TimecodeCard = ({ id, timecode, updateTimecode, setActiveMenu, activeMenu,
                         alignItems: "center",
                         justifyContent: "space-between",
                         paddingRight: "12px",
-                        margin: "6px 0 16px 0",
+                        margin: "6px 0 12px 0",
                     }
 
                 }
@@ -125,7 +125,7 @@ const TimecodeCard = ({ id, timecode, updateTimecode, setActiveMenu, activeMenu,
                         value={timecode.rating}
                         count={3}
                         onChange={(newRating) => ratingChanged(timecode, newRating)}
-                        size={27}
+                        size={25}
                         color1={"#b4b4b4"}
                         color2={"#ffd700"}
                     />

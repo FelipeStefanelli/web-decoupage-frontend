@@ -319,16 +319,25 @@ const VideoUploader = () => {
     const textContent = segments.map((seg) => `${formatTime(seg.start)} · ${formatTime(seg.end)}\n${seg.text}`).join('\n\n');
 
     try {
-      await navigator.clipboard.writeText(textContent); // Usando a Clipboard API para copiar o texto
+      await navigator.clipboard.writeText(textContent);
       alert('Texto copiado para a área de transferência!');
     } catch (err) {
       console.error('Erro ao copiar para a área de transferência: ', err);
     }
   }
 
+  const copyEachToClipboard = async (textContent) => {
+    try {
+      await navigator.clipboard.writeText(textContent);
+      alert('Texto copiado para a área de transferência!');
+    } catch (err) {
+      console.error('Erro ao copiar para a área de transferência: ', err);
+    }
+  }
   const oBtnRef = useRef(null);
   const iBtnRef = useRef(null);
   const dotBtnRef = useRef(null);
+  const SPEEDS = [1, 2, 4];
 
   const handleO = useCallback(() => {
     console.log("click O")
@@ -361,15 +370,102 @@ const VideoUploader = () => {
       // silencioso: alguns players podem recusar durante determinados estados
     }
   }, [mediaType]);
+
+  const fwdIdxRef = useRef(-1);             // -1 = inativo; 0..2 = 1x/2x/4x
+  const revStateRef = useRef({               // controle do "reverse" (J)
+    active: false,
+    idx: 0,                                  // 0..2 = 1x/2x/4x
+    rafId: null,
+    lastTs: 0
+  });
+
+  const getMediaEl = () => (mediaType === 'audio' ? audioRef.current : videoRef.current);
+
+  const stopReverse = useCallback(() => {
+    const st = revStateRef.current;
+    if (st.rafId) cancelAnimationFrame(st.rafId);
+    st.active = false;
+    st.idx = 0;
+    st.rafId = null;
+    st.lastTs = 0;
+  }, []);
+
+  const startOrCycleReverse = useCallback(() => {
+    const el = getMediaEl();
+    if (!el) return;
+
+    // ao entrar no reverse, pausamos o player
+    try { el.pause?.(); } catch { }
+    // desliga aceleração direta (L)
+    fwdIdxRef.current = -1;
+    el.playbackRate = 1;
+
+    const st = revStateRef.current;
+    if (st.active) {
+      // já estava retrocedendo -> cicla 1x → 2x → 4x → 1x
+      st.idx = (st.idx + 1) % SPEEDS.length;
+    } else {
+      st.active = true;
+      st.idx = 0;          // começa em 1x
+      st.lastTs = 0;
+
+      const step = (ts) => {
+        const s = revStateRef.current;
+        if (!s.active) return;
+
+        if (!s.lastTs) { s.lastTs = ts; s.rafId = requestAnimationFrame(step); return; }
+        const dt = (ts - s.lastTs) / 1000; // segundos desde o último frame
+        s.lastTs = ts;
+
+        const speed = SPEEDS[s.idx];       // 1, 2 ou 4
+        const media = getMediaEl();
+        if (!media) return;
+
+        const next = (media.currentTime || 0) - speed * dt;
+        media.currentTime = Math.max(0, next);
+
+        if (media.currentTime <= 0) {      // chegou no início
+          stopReverse();
+          return;
+        }
+        s.rafId = requestAnimationFrame(step);
+      };
+
+      st.rafId = requestAnimationFrame(step);
+    }
+  }, [mediaType, stopReverse]);
+
+  const accelForward = useCallback(() => {
+    const el = getMediaEl();
+    if (!el) return;
+
+    // sair do reverse, se estava
+    stopReverse();
+
+    // está acelerando? -> cicla; se não, começa em 1x
+    if (fwdIdxRef.current === -1) {
+      fwdIdxRef.current = 0;               // 1x
+    } else {
+      fwdIdxRef.current = (fwdIdxRef.current + 1) % SPEEDS.length; // 1→2→4→1
+    }
+
+    const rate = SPEEDS[fwdIdxRef.current];
+    el.playbackRate = rate;
+    const p = el.play?.();
+    if (p && typeof p.then === 'function') p.catch(() => { });
+  }, [mediaType, stopReverse]);
+
+  // opcional: ao pausar manualmente, desligue estados de shuttle/aceleração
+  const resetRates = useCallback(() => {
+    const el = getMediaEl();
+    if (el) el.playbackRate = 1;
+    fwdIdxRef.current = -1;
+    stopReverse();
+  }, [mediaType, stopReverse]);
+
+  // seu toggle atual, adicionando reset quando pausar
   const togglePlayPause = useCallback(() => {
     const el = mediaType === 'audio' ? audioRef.current : videoRef.current;
-
-    console.log("click space 2", {
-      paused: el?.paused,
-      ended: el?.ended,
-      readyState: el?.readyState,
-      currentTime: el?.currentTime,
-    })
     if (!el) return;
 
     if (el.paused || el.ended) {
@@ -377,8 +473,17 @@ const VideoUploader = () => {
       if (p && typeof p.then === 'function') p.catch(() => { });
     } else {
       try { el.pause?.(); } catch { }
+      resetRates(); // <- volta playbackRate pra 1 e desliga reverse
     }
-  }, [mediaType]);
+  }, [mediaType, resetRates]);
+
+  // limpesa ao desmontar
+  useEffect(() => {
+    return () => {
+      resetRates();
+    };
+  }, [resetRates]);
+
   useEffect(() => {
     const BLOCK_INPUT_TYPES = new Set(["button", "checkbox", "color", "file", "hidden", "image", "radio", "range", "reset", "submit"]);
     const isTyping = (el) => {
@@ -414,14 +519,17 @@ const VideoUploader = () => {
       document.removeEventListener("keyup", onKeyUp, true);
     };
   }, [togglePlayPause]);
+
   useHotkeys({
     "o": handleO,
     "i": handleI,
     ".": handleDot,
-    "<": () => seekBy(-5),
-    ">": () => seekBy(+5),
-    arrowleft: () => seekBy(-5),
-    arrowright: () => seekBy(+5),
+    "<": () => seekBy(-1),
+    ">": () => seekBy(+1),
+    arrowleft: () => seekBy(-1),
+    arrowright: () => seekBy(+1),
+    j: startOrCycleReverse,
+    l: accelForward,
   });
 
   const blurIfFocused = () => {
@@ -467,6 +575,7 @@ const VideoUploader = () => {
             <p style={{ margin: 0, fontSize: '14px' }}>Importar Imagem</p>
           </button>
           <input
+            name="import-image"
             type="file"
             accept=".jpg,.jpeg,.png,image/jpeg,image/png"
             ref={imageInputRef}
@@ -522,6 +631,7 @@ const VideoUploader = () => {
             <p style={{ margin: 0, fontSize: '14px' }}>Importar Vídeo</p>
           </button>
           <input
+            name="import-media"
             type="file"
             accept="video/*,audio/*"
             ref={fileInputRef}
@@ -802,17 +912,17 @@ const VideoUploader = () => {
                         <Image
                           src="/copy.svg"
                           alt="Copiar transcrição"
-                          width={30}
-                          height={30}
-                          style={{ width: "30px", height: "30px", cursor: 'pointer' }}
+                          width={28}
+                          height={28}
+                          style={{ width: "28px", height: "28px", cursor: 'pointer' }}
                           onClick={() => copyToClipboard()}
                         />
                         <Image
                           src="/close-white.svg"
                           alt="Close icon"
-                          width={32}
-                          height={32}
-                          style={{ width: "32px", height: "32px", cursor: 'pointer' }}
+                          width={28}
+                          height={28}
+                          style={{ width: "28px", height: "28px", cursor: 'pointer' }}
                           onClick={() => setShowDetailsModal(false)}
                         />
                       </div>
@@ -825,6 +935,7 @@ const VideoUploader = () => {
                     }}>
                       {segments.map((seg, i) => (
                         <div key={i} style={{
+                          position: "relative",
                           marginBottom: '1rem',
                           padding: '0.75rem 1rem',
                           background: '#f9f9f9',
@@ -835,6 +946,21 @@ const VideoUploader = () => {
                             {formatTime(seg.start)} · {formatTime(seg.end)}
                           </small>
                           <p style={{ margin: '6px 0 0', fontSize: '14px', color: '#333' }}>{seg.text}</p>
+                          <Image
+                            src="/copy.svg"
+                            alt="Copiar transcrição"
+                            width={22}
+                            height={22}
+                            style={{
+                              position: "absolute",
+                              top: '8px',
+                              right: '8px',
+                              width: "22px",
+                              height: "22px",
+                              cursor: 'pointer'
+                            }}
+                            onClick={() => copyEachToClipboard(seg.text)}
+                          />
                         </div>
                       ))}
                     </div>

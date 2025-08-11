@@ -287,6 +287,7 @@ export default function SideMenu() {
                 {isCreatingNewProject ? (
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', width: '100%' }}>
                     <input
+                      name="new-project-name"
                       style={{
                         width: '100%',
                         padding: "4px 0",
@@ -410,6 +411,7 @@ export default function SideMenu() {
           <div style={{ display: 'flex', alignItems: 'center', paddingTop: '16px' }}>
             <span style={{ fontSize: '14px' }}>API:</span>
             <input
+              name="api-url"
               disabled
               value={apiUrl}
               onChange={(e) => {

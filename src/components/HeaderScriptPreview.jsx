@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import Image from '@/components/Image';
 import ScriptInput from '@/components/ScriptInput';
 import { formatTimecode } from '@/utils/utils';
@@ -13,64 +13,165 @@ const HeaderScriptPreview = ({ contentRef, data, projectName, exportDate, views 
   const [isDataEmpty, setIsDataEmpty] = useState(false);
 
   const { apiUrl } = useVisibility();
+
+  // ------- INÍCIO: BLOCO ALTERADO (carregamento de imagens otimizado) -------
+  const blobUrlCache = useRef(new Map());
+
   useEffect(() => {
     setLoading(true);
-    const loadImages = async () => {
-      const map = {};
-      for (const scene of data?.script || []) {
-        for (const tc of scene.timecodes || []) {
-          if (!tc.imageUrl) continue;
-          const url = `${apiUrl ? apiUrl : 'http://localhost:4000'}${tc.imageUrl}`;
+
+    async function downscaleImage(blob, maxH) {
+      let bmp = null;
+      try {
+        bmp = await createImageBitmap(blob);
+      } catch {
+        bmp = null;
+      }
+
+      let w, h;
+      if (bmp) {
+        const ratio = bmp.height > maxH ? maxH / bmp.height : 1;
+        w = Math.round(bmp.width * ratio);
+        h = Math.round(bmp.height * ratio);
+      } else {
+        const img = await blobToImage(blob);
+        const ratio = img.naturalHeight > maxH ? maxH / img.naturalHeight : 1;
+        w = Math.round(img.naturalWidth * ratio);
+        h = Math.round(img.naturalHeight * ratio);
+      }
+
+      const canvas = document.createElement('canvas');
+      canvas.width = w; canvas.height = h;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) throw new Error('Canvas 2D context não disponível');
+
+      if (bmp) {
+        ctx.drawImage(bmp, 0, 0, w, h);
+        if (bmp.close) bmp.close();
+      } else {
+        const img = await blobToImage(blob);
+        ctx.drawImage(img, 0, 0, w, h);
+      }
+
+      const outBlob = await new Promise((resolve, reject) => {
+        if (canvas.toBlob) {
+          canvas.toBlob((b) => (b ? resolve(b) : reject(new Error('canvas.toBlob retornou null'))), 'image/jpeg', 0.72);
+        } else {
           try {
-            const res = await fetch(url, {
+            const dataURL = canvas.toDataURL('image/jpeg', 0.72);
+            const b = dataURLToBlob(dataURL);
+            resolve(b);
+          } catch (err) {
+            reject(err);
+          }
+        }
+      });
+
+      return outBlob;
+    }
+
+    function blobToImage(blob) {
+      return new Promise((resolve, reject) => {
+        const url = URL.createObjectURL(blob);
+        const img = new Image();
+        img.decoding = 'async';
+        img.onload = () => { URL.revokeObjectURL(url); resolve(img); };
+        img.onerror = (e) => { URL.revokeObjectURL(url); reject(e); };
+        img.src = url;
+      });
+    }
+
+    function dataURLToBlob(dataURL) {
+      const [header, data] = dataURL.split(',');
+      const mime = header.match(/:(.*?);/)[1];
+      const bin = atob(data);
+      const len = bin.length;
+      const u8 = new Uint8Array(len);
+      for (let i = 0; i < len; i++) u8[i] = bin.charCodeAt(i);
+      return new Blob([u8], { type: mime });
+    }
+
+    const loadImagesAsBlobUrls = async () => {
+      const scenes = data?.script || [];
+
+      if (!scenes.length) {
+        setIsDataEmpty(true);
+        setBase64Map({});
+        setLoading(false);
+        return;
+      }
+      setIsDataEmpty(false);
+
+      // achata todos os timecodes com imagem
+      const allTimecodes = [];
+      for (const scene of scenes) {
+        for (const tc of scene.timecodes || []) {
+          if (tc?.imageUrl && tc?.id) allTimecodes.push(tc);
+        }
+      }
+
+      const map = {};
+      const pool = 6; // concorrência
+      let i = 0;
+
+      async function worker() {
+        while (i < allTimecodes.length) {
+          const idx = i++;
+          const tc = allTimecodes[idx];
+          const fullUrl = `${apiUrl ? apiUrl : 'http://localhost:4000'}${tc.imageUrl}`;
+          try {
+            // cache por id
+            if (blobUrlCache.current.has(tc.id)) {
+              const cached = blobUrlCache.current.get(tc.id);
+              if (cached) map[tc.id] = cached;
+              continue;
+            }
+
+            const res = await fetch(fullUrl, {
               method: 'GET',
-              headers: {
-                'ngrok-skip-browser-warning': '1',
-                'Accept': 'application/json'
-              }
+              headers: { 'ngrok-skip-browser-warning': '1', 'Accept': 'image/*' }
             });
+            if (!res.ok) throw new Error(`HTTP ${res.status}`);
             const blob = await res.blob();
-            const reader = new FileReader();
-            const base64 = await new Promise((resolve) => {
-              reader.onloadend = () => resolve(reader.result);
-              reader.readAsDataURL(blob);
-            });
-            map[tc.id] = base64;
+
+            // comprime/reduz antes de criar o URL
+            const compressed = await downscaleImage(blob, 900);
+            const url = URL.createObjectURL(compressed);
+
+            blobUrlCache.current.set(tc.id, url);
+            map[tc.id] = url;
           } catch (e) {
-            setLoading(false);
-            console.warn("Erro carregando imagem", url, e);
+            console.warn('Erro carregando imagem', fullUrl, e);
           }
         }
       }
-      setLoading(false);
-      setBase64Map(map);
-    };
-    if (data.script.length > 0) {
-      setIsDataEmpty(false);
-      loadImages();
-    } else {
-      setIsDataEmpty(true);
-      setLoading(false);
-    }
-  }, [data]);
 
+      await Promise.all(Array.from({ length: pool }, worker));
+      setBase64Map(map);
+      setLoading(false);
+    };
+
+    loadImagesAsBlobUrls();
+  }, [data, apiUrl]);
+  // ------- FIM: BLOCO ALTERADO (carregamento de imagens otimizado) -------
 
   const generatePreview = useCallback(async () => {
     if (!contentRef.current) return
+    setLoading(true);
 
     const element = contentRef.current
+    const SCALE = Math.min(3, Math.max(2, Math.ceil(window.devicePixelRatio || 2)));
+    
     const opt = {
-      html2canvas: { scale: 2 },
+      html2canvas: { scale: SCALE },
       jsPDF: { unit: 'pt', format: 'a4', orientation: 'portrait' },
-      margin: [16, 0, 0, 0],
+      margin: [12, 0, 0, 0],
       pagebreak: {
-        mode: ['css'],      // habilita suporte via CSS
-        avoid: '.scene-selector'                // evita quebrar qualquer elemento com classe "card"
+        mode: ['css'],
+        avoid: '.scene-selector'
       }
     }
 
-
-    // gera o blob em vez de salvar direto
     const pdfBlob = await html2pdf()
       .from(element)
       .set(opt)
@@ -80,7 +181,6 @@ const HeaderScriptPreview = ({ contentRef, data, projectName, exportDate, views 
     const url = URL.createObjectURL(pdfBlob)
     setPreviewUrl(url)
     setLoading(false);
-    // libera URL antiga quando desmontar
     return () => previewUrl && URL.revokeObjectURL(previewUrl)
   }, [contentRef]);
 
@@ -89,6 +189,7 @@ const HeaderScriptPreview = ({ contentRef, data, projectName, exportDate, views 
       generatePreview();
     }
   }, [base64Map, generatePreview]);
+
   return (
     <div style={{ width: '100%', height: 'calc(100vh - 220px)', overflow: 'hidden' }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%', height: '100%' }}>
@@ -190,7 +291,7 @@ const renderTimecodeCard = (timecode, id, scriptId, type = null, base64Map = nul
         {timecode.imageUrl && base64Map && (
           <div
             style={{
-              position: 'relative',            // <— cria o contexto para os absolutely-positioned
+              position: 'relative',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
@@ -230,21 +331,23 @@ const renderTimecodeCard = (timecode, id, scriptId, type = null, base64Map = nul
               <div style={{ width: '2px', height: '15px', backgroundColor: 'rgb(14, 11, 25)' }}></div>
               {timecode.type && <Image src={`/${typeToIcon(timecode.type)}`} alt="Type icon" width={18} style={{ display: 'block' }} />}
             </div>
-            <ReactStars
-              value={timecode.rating}
-              count={3}
-              onChange={(newRating) => ratingChanged(timecode, newRating)}
-              size={20}
-              color1={"#b4b4b4"}
-              color2={"#ffd700"}
-            />
+            <div style={{ marginBottom: "6px" }}>
+              <ReactStars
+                value={timecode.rating}
+                count={3}
+                onChange={(newRating) => ratingChanged(timecode, newRating)}
+                size={20}
+                color1={"#b4b4b4"}
+                color2={"#ffd700"}
+              />
+            </div>
           </div>
           {type !== "AV" && timecode.text &&
             <p
               style={{
                 width: "calc(100% - 26px)",
                 padding: "10px 8px 12px",
-                margin: "2px 16px 4px 4px",
+                margin: "0 16px 4px 4px",
                 fontSize: "12px",
                 lineHeight: "12px",
                 fontWeight: 500,
@@ -274,9 +377,6 @@ const renderTimecodeCard = (timecode, id, scriptId, type = null, base64Map = nul
             <span style={{ backgroundColor: 'black', color: 'white', padding: "1px 4px 2px", borderRadius: '2px' }}>{formatTimecode(timecode.duration)}</span>
           </div>
         }
-        {/** <div style={{ textAlign: 'end', padding: '8px 16px 8px 16px', fontSize: '10px', fontWeight: '500', color: 'rgb(14, 11, 25)' }}>
-          {timecode.id.split('-')[0] + '-' + timecode.id.split('-')[1] + '-' + timecode.id.split('-')[2] + '-' + timecode.id.split('-')[3]}
-        </div> **/}
         {type !== "AV" && timecode.mediaName && (
           <div style={{ textAlign: 'end', padding: '8px 16px 16px 16px', fontSize: '10px', fontWeight: '500', color: 'rgb(14, 11, 25)' }}>{timecode.mediaName}</div>
         )
