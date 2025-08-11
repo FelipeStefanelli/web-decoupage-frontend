@@ -398,7 +398,7 @@ const HeaderDecoupagePreview = ({ contentRef, data, projectName, exportDate }) =
                         <img
                           loading="lazy"
                           src={base64Map[timecode.id] || `http://localhost:4000${timecode.imageUrl}`}
-                          alt={`Thumbnail at ${timecode.inTime}`}
+                          alt={`Timecode ${timecode.inTime}- ${timecode.outTime}`}
                           style={{
                             maxHeight: '100px',
                             height: 'auto',

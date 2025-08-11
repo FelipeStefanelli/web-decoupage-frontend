@@ -6,17 +6,39 @@ import TimecodeType from "./TimecodeType";
 import ReactStars from "react-stars";
 import { useVisibility } from '@/contexts/VisibilityContext';
 
+// cache global por id do timecode (persiste no módulo)
 const imageBlobCache = new Map();
 
-const TimecodeCard = ({ id, timecode, updateTimecode, setActiveMenu, activeMenu, ratingChanged, type, views, cardType, projectName, fetchTimecodes, setIsDraggingOverTextarea, base64Map }) => {
+const TimecodeCard = ({
+  id,
+  timecode,
+  updateTimecode,
+  setActiveMenu,
+  activeMenu,
+  ratingChanged,
+  type,
+  views,
+  cardType,
+  projectName,
+  fetchTimecodes,
+  setIsDraggingOverTextarea,
+  base64Map
+}) => {
   const { apiUrl } = useVisibility();
 
+  // ===== IMAGEM OTIMIZADA + LOADING =========================================
   const [resolvedSrc, setResolvedSrc] = useState(null);
+  const [imgLoading, setImgLoading] = useState(!!timecode?.imageUrl);
 
+  // ajuste de nitidez sem inflar demais
   const dpr = typeof window !== 'undefined' && window.devicePixelRatio ? window.devicePixelRatio : 2;
   const SCALE = Math.min(3, Math.max(2, Math.ceil(dpr)));
-  const DISPLAY_H = 100;
-  const TARGET_H = DISPLAY_H * SCALE * 2;
+  const DISPLAY_H = 100;                 // altura real usada no layout
+  const TARGET_H = DISPLAY_H * SCALE * 2; // oversampling p/ ficar nítido
+
+  useEffect(() => {
+    setImgLoading(!!timecode?.imageUrl);
+  }, [timecode?.imageUrl]);
 
   useEffect(() => {
     let alive = true;
@@ -81,20 +103,21 @@ const TimecodeCard = ({ id, timecode, updateTimecode, setActiveMenu, activeMenu,
     }
 
     async function resolveImage() {
-      if (!timecode?.imageUrl) { setResolvedSrc(null); return; }
+      if (!timecode?.imageUrl) { setResolvedSrc(null); setImgLoading(false); return; }
 
       const imgId = timecode.id;
       const fullUrl = `${apiUrl ? apiUrl : "http://localhost:4000"}${timecode.imageUrl}`;
 
-      // 1) se o pai já passou (compatível com sua API)
-      if (base64Map && base64Map[imgId]) { setResolvedSrc(base64Map[imgId]); return; }
+      // 1) veio do pai (compatível com seu fluxo)
+      if (base64Map && base64Map[imgId]) { if (alive) { setResolvedSrc(base64Map[imgId]); setImgLoading(false); } return; }
 
       // 2) cache global
       const cached = imageBlobCache.get(imgId);
-      if (cached) { setResolvedSrc(cached); return; }
+      if (cached) { if (alive) { setResolvedSrc(cached); setImgLoading(false); } return; }
 
       // 3) fetch + compress + Blob URL
       try {
+        setImgLoading(true);
         const res = await fetch(fullUrl, {
           method: 'GET',
           headers: { 'ngrok-skip-browser-warning': '1', 'Accept': 'image/*' }
@@ -105,21 +128,21 @@ const TimecodeCard = ({ id, timecode, updateTimecode, setActiveMenu, activeMenu,
         const processed = await downscaleImage(blob, TARGET_H);
         const url = URL.createObjectURL(processed);
         imageBlobCache.set(imgId, url);
-        if (alive) setResolvedSrc(url);
+        if (alive) { setResolvedSrc(url); setImgLoading(false); }
       } catch (e) {
         console.warn('Erro carregando imagem', fullUrl, e);
-        if (alive) setResolvedSrc(fullUrl); // fallback
+        if (alive) { setResolvedSrc(fullUrl); setImgLoading(false); } // fallback
       }
     }
 
     resolveImage();
     return () => { alive = false; };
   }, [timecode?.id, timecode?.imageUrl, apiUrl, base64Map]);
+  // ==========================================================================
 
   const src =
     resolvedSrc ||
     (timecode?.imageUrl ? `${apiUrl ? apiUrl : "http://localhost:4000"}${timecode.imageUrl}` : '');
-  // --------- FIM: LÓGICA DE IMAGEM OTIMIZADA (JSX) ---------
 
   const deleteTimecode = async (idToDelete) => {
     const response = await fetch(`${apiUrl ? apiUrl : 'http://localhost:4000'}/api?projectName=${projectName}`, {
@@ -166,7 +189,7 @@ const TimecodeCard = ({ id, timecode, updateTimecode, setActiveMenu, activeMenu,
       {((timecode.imageUrl && cardType !== 'script') || (cardType === "script" && timecode.type !== 'A')) && (
         <div
           style={{
-            position: 'relative',
+            position: 'relative',            // contexto pro overlay
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
@@ -180,9 +203,30 @@ const TimecodeCard = ({ id, timecode, updateTimecode, setActiveMenu, activeMenu,
             overflow: 'hidden'
           }}
         >
+          {/* overlay loading */}
+          {imgLoading && (
+            <div
+              style={{
+                position: 'absolute',
+                inset: 0,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                background: 'rgba(0,0,0,0.15)',
+                zIndex: 3
+              }}
+            >
+              <CustomImage src="/loading.svg" alt="Carregando" width={28} height={28} />
+            </div>
+          )}
+
           <img
             src={src}
             alt={`Thumbnail at ${timecode.inTime}`}
+            loading="lazy"
+            decoding="async"
+            onLoad={() => setImgLoading(false)}
+            onError={() => setImgLoading(false)}
             style={{
               maxHeight: '100px',
               height: 'auto',
@@ -200,23 +244,11 @@ const TimecodeCard = ({ id, timecode, updateTimecode, setActiveMenu, activeMenu,
           />
         </div>
       )}
+
       <div
-        style={type !== 'audio' ?
-          {
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            paddingRight: "12px",
-            margin: "4px 0 8px 0",
-          }
-          :
-          {
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            paddingRight: "12px",
-            margin: "6px 0 12px 0",
-          }
+        style={type !== 'audio'
+          ? { display: "flex", alignItems: "center", justifyContent: "space-between", paddingRight: "12px", margin: "4px 0 8px 0" }
+          : { display: "flex", alignItems: "center", justifyContent: "space-between", paddingRight: "12px", margin: "6px 0 12px 0" }
         }
       >
         <TimecodeType
@@ -238,6 +270,7 @@ const TimecodeCard = ({ id, timecode, updateTimecode, setActiveMenu, activeMenu,
           />
         }
       </div>
+
       {type !== 'AV-audio' &&
         <TimecodeInput
           timecode={timecode}
@@ -245,6 +278,7 @@ const TimecodeCard = ({ id, timecode, updateTimecode, setActiveMenu, activeMenu,
           setIsDraggingOverTextarea={setIsDraggingOverTextarea}
         />
       }
+
       {type !== 'AV-audio' &&
         <>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '2px', padding: '8px 12px 4px 12px', fontSize: '9px' }}>
@@ -260,6 +294,7 @@ const TimecodeCard = ({ id, timecode, updateTimecode, setActiveMenu, activeMenu,
               {formatTimecode(timecode.duration)}
             </p>
           </div>
+
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', padding: "8px 12px 16px 12px" }}>
             <CustomImage
               aria-hidden
@@ -273,7 +308,7 @@ const TimecodeCard = ({ id, timecode, updateTimecode, setActiveMenu, activeMenu,
             <CustomImage
               aria-hidden
               src="/copy.svg"
-              alt="Trash icon"
+              alt="Copy icon"
               width={18}
               height={18}
               style={{ width: "18px", height: "18px", cursor: "pointer" }}
