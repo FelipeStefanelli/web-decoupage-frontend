@@ -161,7 +161,7 @@ const HeaderScriptPreview = ({ contentRef, data, projectName, exportDate, views 
 
     const element = contentRef.current
     const SCALE = Math.min(3, Math.max(2, Math.ceil(window.devicePixelRatio || 2)));
-    
+
     const opt = {
       html2canvas: { scale: SCALE },
       jsPDF: { unit: 'pt', format: 'a4', orientation: 'portrait' },
@@ -200,7 +200,7 @@ const HeaderScriptPreview = ({ contentRef, data, projectName, exportDate, views 
             {previewUrl &&
               (
                 <iframe
-                  src={previewUrl}
+                  src={`${previewUrl}#zoom=page-width`}
                   title="Preview do PDF"
                   style={{ width: '100%', height: '100%', border: 'none' }}
                 />

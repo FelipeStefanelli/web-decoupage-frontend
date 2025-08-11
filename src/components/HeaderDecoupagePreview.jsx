@@ -320,7 +320,7 @@ const HeaderDecoupagePreview = ({ contentRef, data, projectName, exportDate }) =
             <>
               {previewUrl &&
                 <iframe
-                  src={`${previewUrl}#zoom=75`}
+                  src={`${previewUrl}#zoom=page-width`}
                   title="Preview do PDF"
                   style={{ width: '100%', height: 'calc(100%)', border: 'none' }}
                 />
