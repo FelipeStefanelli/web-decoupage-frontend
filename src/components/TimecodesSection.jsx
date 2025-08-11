@@ -8,6 +8,7 @@ import 'react-toastify/dist/ReactToastify.css';
 import { useVisibility } from '@/contexts/VisibilityContext';
 import ScriptSelector from './ScriptSelector';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useBase64Images } from "../hooks/useBase64Images";
 
 const TimecodesSection = (props) => {
     console.log('TimecodesSection renderizou');
@@ -508,6 +509,7 @@ const TimecodesSection = (props) => {
         timecodes.filter(tc => (!filterText || tc.text?.toLowerCase().includes(filterText.toLowerCase())) && (selectedTypes.length === 0 || selectedTypes.includes(tc.type)))
         ;
 
+    const base64Map = useBase64Images(timecodes, apiUrl);
     return (
         <div style={props.script ? { display: 'flex', width: '100%', height: 'calc(100vh - 77px)' } : { display: 'flex', width: '60%', height: 'calc(100vh - 77px)', backgroundColor: "rgba(231, 231, 231)", }}>
             <div style={{ width: props.script ? '40%' : '100%' }}>
@@ -626,6 +628,7 @@ const TimecodesSection = (props) => {
                                     projectName={projectName}
                                     fetchTimecodes={fetchTimecodes}
                                     setIsDraggingOverTextarea={setIsDraggingOverTextarea}
+                                    base64Map={base64Map}
                                 />
                             </div>
                         ))}
@@ -968,6 +971,7 @@ const TimecodesSection = (props) => {
                                                                                     projectName={projectName}
                                                                                     fetchTimecodes={fetchTimecodes}
                                                                                     setIsDraggingOverTextarea={setIsDraggingOverTextarea}
+                                                                                    base64Map={base64Map}
                                                                                 />
                                                                             </div>
                                                                         ))}
@@ -1044,6 +1048,7 @@ const TimecodesSection = (props) => {
                                                                                         projectName={projectName}
                                                                                         fetchTimecodes={fetchTimecodes}
                                                                                         setIsDraggingOverTextarea={setIsDraggingOverTextarea}
+                                                                                        base64Map={base64Map}
                                                                                     />
                                                                                 </div>
                                                                             )
@@ -1068,6 +1073,7 @@ const TimecodesSection = (props) => {
                                                                             cardType="script"
                                                                             projectName={projectName}
                                                                             fetchTimecodes={fetchTimecodes}
+                                                                            base64Map={base64Map}
                                                                         />
                                                                     </div>
                                                                 )

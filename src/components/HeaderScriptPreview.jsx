@@ -41,12 +41,10 @@ const HeaderScriptPreview = ({ contentRef, data, projectName, exportDate, views 
           }
         }
       }
+      setLoading(false);
       setBase64Map(map);
     };
     loadImages();
-    setTimeout(() => {
-      generatePreview();
-    }, 1000);
   }, [data]);
 
 
@@ -64,6 +62,7 @@ const HeaderScriptPreview = ({ contentRef, data, projectName, exportDate, views 
       }
     }
 
+
     // gera o blob em vez de salvar direto
     const pdfBlob = await html2pdf()
       .from(element)
@@ -77,6 +76,12 @@ const HeaderScriptPreview = ({ contentRef, data, projectName, exportDate, views 
     // libera URL antiga quando desmontar
     return () => previewUrl && URL.revokeObjectURL(previewUrl)
   }, [contentRef]);
+
+  useEffect(() => {
+    if (Object.keys(base64Map).length > 0) {
+      generatePreview();
+    }
+  }, [base64Map, generatePreview]);
   return (
     <div style={{ width: '100%', height: 'calc(100vh - 220px)', overflow: 'hidden' }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%', height: '100%' }}>
@@ -84,17 +89,20 @@ const HeaderScriptPreview = ({ contentRef, data, projectName, exportDate, views 
           <Image src="/loading.svg" alt="Carregando" width={48} height={48} />
           :
           <>
-            {previewUrl && (
+            {previewUrl ? (
               <iframe
                 src={previewUrl}
                 title="Preview do PDF"
                 style={{ width: '100%', height: '100%', border: 'none' }}
               />
-            )}
+            )
+              :
+              <div>Adicione cenas ao roteiro para visualizar o preview.</div>
+            }
           </>
         }
       </div>
-      <div ref={contentRef} style={{padding: "0 16px 16px 16px"}}>
+      <div ref={contentRef} style={{ padding: "0 16px 16px 16px" }}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
           <span style={{ fontSize: '18px' }}>ROTEIRO</span>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', border: '1px solid rgb(180, 180, 180)', borderRadius: '8px' }}>
@@ -282,7 +290,7 @@ const renderTakes = (script, id, base64Map) => {
 
 const renderAV = (timecode, id, scriptId, base64Map) => {
   return (
-    <div id={`grid-scripts-${id}`} style={{ display: 'grid', gap: '1rem', gridTemplateColumns: 'repeat(2, 1fr)' }}>
+    <div id={`grid-scripts-${id}`} key={`grid-scripts-${id}`} style={{ display: 'grid', gap: '1rem', gridTemplateColumns: 'repeat(2, 1fr)' }}>
       {renderTimecodeCard(timecode, id, scriptId, "AV", base64Map)}
     </div>
   );

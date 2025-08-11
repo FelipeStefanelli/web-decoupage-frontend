@@ -41,6 +41,7 @@ const HeaderDecoupagePreview = ({ contentRef, data, projectName, exportDate }) =
           console.warn(`Erro carregando imagem ${url}`, e);
         }
       }
+      setLoading(false);
       setBase64Map(map);
     };
 
@@ -92,6 +93,12 @@ const HeaderDecoupagePreview = ({ contentRef, data, projectName, exportDate }) =
     return () => previewUrl && URL.revokeObjectURL(previewUrl)
   }, [contentRef, debouncedFilterText, selectedTypes]);
 
+  useEffect(() => {
+    if (Object.keys(base64Map).length > 0) {
+      generatePreview();
+    }
+  }, [base64Map, generatePreview]);
+
   function groupArray(arr, size) {
     return arr.filter((t) => t.type).reduce((acc, _, i) => {
       if (i % size === 0) {
@@ -104,12 +111,6 @@ const HeaderDecoupagePreview = ({ contentRef, data, projectName, exportDate }) =
   function filterArray(arr) {
     return arr.filter(tc => (!filterText || tc.text?.toLowerCase().includes(filterText.toLowerCase())) && (selectedTypes.length === 0 || selectedTypes.includes(tc.type)))
   }
-
-  useEffect(() => {
-    if (Object.keys(base64Map).length > 0) {
-      generatePreview();
-    }
-  }, [base64Map, generatePreview]);
 
   const filtered = filterArray(data.timecodes);
   const grouped = groupArray(filtered, 3);
@@ -214,13 +215,15 @@ const HeaderDecoupagePreview = ({ contentRef, data, projectName, exportDate }) =
           </div>
         ) : (
           <>
-            {previewUrl && (
+            {previewUrl ?
               <iframe
                 src={`${previewUrl}#zoom=75`}
                 title="Preview do PDF"
                 style={{ width: '100%', height: 'calc(100%)', border: 'none' }}
               />
-            )}
+              :
+              <div>Adicione timecodes a decupagem para visualizar o preview.</div>
+            }
           </>
         )}
       </div>

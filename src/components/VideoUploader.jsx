@@ -5,7 +5,7 @@ import { formatTimecode, calculateDifference, fileToBase64, base64ToFile } from 
 import { toast } from 'react-toastify';
 import { useVisibility } from '@/contexts/VisibilityContext';
 import ImageEditor from '@/components/ImageEditor';
-import { useHotkeys } from "../hooks/useHotKeys";
+import { useHotkeys } from "../hooks/useHotKeys.js";
 
 const VideoUploader = () => {
   const [currentTimecodeIn, setCurrentTimecodeIn] = useState(null);
@@ -859,7 +859,6 @@ const VideoUploader = () => {
                   gap: '1rem',
                   flexWrap: 'wrap'
                 }}>
-                  {/* Bloco de conversão de vídeo */}
                   {mediaType === "video" &&
                     <div style={{ flex: '1 1 45%', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                       <select

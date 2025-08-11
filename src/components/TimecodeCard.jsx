@@ -1,14 +1,16 @@
 import React from 'react';
 import { formatTimecode } from "@/utils/utils";
-import CustomImage  from "@/components/Image";
+import CustomImage from "@/components/Image";
 import TimecodeInput from "./TimecodeInput";
 import TimecodeType from "./TimecodeType";
 import ReactStars from "react-stars";
 import { useVisibility } from '@/contexts/VisibilityContext';
-import { wrap } from 'framer-motion';
 
-const TimecodeCard = ({ id, timecode, updateTimecode, setActiveMenu, activeMenu, ratingChanged, type, views, cardType, projectName, fetchTimecodes, setIsDraggingOverTextarea }) => {
+const TimecodeCard = ({ id, timecode, updateTimecode, setActiveMenu, activeMenu, ratingChanged, type, views, cardType, projectName, fetchTimecodes, setIsDraggingOverTextarea, base64Map }) => {
     const { apiUrl } = useVisibility();
+    const src =
+        base64Map?.[timecode.id] ||
+        `${apiUrl ? apiUrl : "http://localhost:4000"}${timecode.imageUrl}`;
     const deleteTimecode = async (id) => {
         const response = await fetch(`${apiUrl ? apiUrl : 'http://localhost:4000'}/api?projectName=${projectName}`, {
             method: 'DELETE',
@@ -20,17 +22,17 @@ const TimecodeCard = ({ id, timecode, updateTimecode, setActiveMenu, activeMenu,
     };
     const renderFilename = (filename, maxLength = 20) => {
         if (!filename) return '';
-      
+
         const dotIndex = filename.lastIndexOf('.');
         const hasExtension = dotIndex !== -1;
         const name = hasExtension ? filename.slice(0, dotIndex) : filename;
         const ext = hasExtension ? filename.slice(dotIndex) : '';
-      
+
         if (filename.length <= maxLength) return filename;
-      
+
         const allowedNameLength = maxLength - ext.length - 3;
         const shortName = name.slice(0, allowedNameLength);
-      
+
         return `${shortName}..${ext}`;
     };
 
@@ -71,21 +73,21 @@ const TimecodeCard = ({ id, timecode, updateTimecode, setActiveMenu, activeMenu,
                     }}
                 >
                     <img
-                        src={`http://localhost:4000${timecode.imageUrl}`}
+                        src={src}
                         alt={`Thumbnail at ${timecode.inTime}`}
                         style={{
-                        maxHeight: '100px',
-                        height: 'auto',
-                        width: 'auto',
-                        maxWidth: '100%',
-                        display: 'block',
-                        margin: '0 auto',
-                        userSelect: 'none',
-                        pointerEvents: 'none',
-                        borderRadius: '2px',
-                        objectFit: 'cover',
-                        position: 'relative',
-                        zIndex: 2,
+                            maxHeight: '100px',
+                            height: 'auto',
+                            width: 'auto',
+                            maxWidth: '100%',
+                            display: 'block',
+                            margin: '0 auto',
+                            userSelect: 'none',
+                            pointerEvents: 'none',
+                            borderRadius: '2px',
+                            objectFit: 'cover',
+                            position: 'relative',
+                            zIndex: 2,
                         }}
                     />
                 </div>
@@ -116,7 +118,7 @@ const TimecodeCard = ({ id, timecode, updateTimecode, setActiveMenu, activeMenu,
                     updateTimecode={updateTimecode}
                     setActiveMenu={setActiveMenu}
                     activeMenu={activeMenu}
-                    readOnly={type === 'AV-audio' || (cardType === "script" && timecode.type === "AV")  ? true : false}
+                    readOnly={type === 'AV-audio' || (cardType === "script" && timecode.type === "AV") ? true : false}
                 />
                 {type !== 'AV-audio' && verifyViews('classification-view') &&
                     <ReactStars
@@ -130,9 +132,9 @@ const TimecodeCard = ({ id, timecode, updateTimecode, setActiveMenu, activeMenu,
                 }
             </div>
             {type !== 'AV-audio' &&
-                <TimecodeInput 
-                    timecode={timecode} 
-                    updateTimecode={updateTimecode} 
+                <TimecodeInput
+                    timecode={timecode}
+                    updateTimecode={updateTimecode}
                     setIsDraggingOverTextarea={setIsDraggingOverTextarea}
                 />
             }
@@ -228,7 +230,7 @@ const TimecodeCard = ({ id, timecode, updateTimecode, setActiveMenu, activeMenu,
                                     margin: 0
                                 }}
                                 title={timecode.mediaName}
-                                >
+                            >
                                 {renderFilename(timecode.mediaName)}
                             </p>
                         </div>
