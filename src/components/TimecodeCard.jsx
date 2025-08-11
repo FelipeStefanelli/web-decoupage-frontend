@@ -223,7 +223,7 @@ const TimecodeCard = ({
 
           <img
             src={src}
-            alt={`Thumbnail at ${timecode.inTime}`}
+            alt={`Timecode em ${timecode.inTime}`}
             loading="lazy"
             decoding="async"
             onLoad={() => setImgLoading(false)}

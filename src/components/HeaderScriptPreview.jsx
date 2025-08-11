@@ -306,7 +306,7 @@ const renderTimecodeCard = (timecode, id, scriptId, type = null, base64Map = nul
           >
             <img
               src={base64Map[timecode.id] || `http://localhost:4000${timecode.imageUrl}`}
-              alt={`Thumbnail at ${timecode.inTime}`}
+              alt={`Timecode em ${timecode.inTime}`}
               style={{
                 maxHeight: '100px',
                 height: 'auto',
