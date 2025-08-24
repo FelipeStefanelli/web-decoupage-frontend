@@ -248,8 +248,8 @@ const TimecodeCard = ({
 
       <div
         style={type !== 'audio'
-          ? { display: "flex", alignItems: "center", justifyContent: "space-between", paddingRight: "12px", margin: "4px 0 8px 0" }
-          : { display: "flex", alignItems: "center", justifyContent: "space-between", paddingRight: "12px", margin: "6px 0 12px 0" }
+          ? { display: "flex", alignItems: "center", justifyContent: "space-between", paddingRight: "12px", margin: "2px 0 8px 0" }
+          : { display: "flex", alignItems: "center", justifyContent: "space-between", paddingRight: "12px", margin: "4px 0 12px 0" }
         }
       >
         <TimecodeType
@@ -259,16 +259,19 @@ const TimecodeCard = ({
           setActiveMenu={setActiveMenu}
           activeMenu={activeMenu}
           readOnly={type === 'AV-audio' || (cardType === "script" && timecode.type === "AV") ? true : false}
+          cardType={cardType}
         />
         {type !== 'AV-audio' && verifyViews('classification-view') &&
-          <ReactStars
-            value={timecode.rating}
-            count={3}
-            onChange={(newRating) => ratingChanged(timecode, newRating)}
-            size={25}
-            color1={"#b4b4b4"}
-            color2={"#ffd700"}
-          />
+          <div style={{ display: "flex", marginBottom: "1px" }}>
+            <ReactStars
+              value={timecode.rating}
+              count={3}
+              onChange={(newRating) => ratingChanged(timecode, newRating)}
+              size={cardType === "script" ? 20 : 22}
+              color1={"#b4b4b4"}
+              color2={"#ffd700"}
+            />
+          </div>
         }
       </div>
 
@@ -282,7 +285,7 @@ const TimecodeCard = ({
 
       {type !== 'AV-audio' &&
         <>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '2px', padding: '8px 12px 4px 12px', fontSize: '9px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', flexWrap: cardType === 'script' ? 'wrap' : 'nowrap', justifyContent: 'flex-end', gap: '2px', padding: '4px 12px 4px 12px', fontSize: cardType === 'script' ? '8px' : '9px' }}>
             <p style={{ borderRadius: '2px', padding: '2px', color: 'rgb(18, 14, 35)', fontWeight: '600', lineHeight: '10px', letterSpacing: '0.1px', textAlign: 'center', margin: 0 }}>
               {formatTimecode(timecode.inTime)}
             </p>
@@ -296,37 +299,38 @@ const TimecodeCard = ({
             </p>
           </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', padding: "8px 12px 16px 12px" }}>
-            <CustomImage
-              aria-hidden
-              src="/trash.svg"
-              alt="Trash icon"
-              width={20}
-              height={20}
-              style={{ width: "20px", height: "20px", cursor: "pointer" }}
-              onClick={() => deleteTimecode(timecode.id)}
-            />
-            <CustomImage
-              aria-hidden
-              src="/copy.svg"
-              alt="Copy icon"
-              width={18}
-              height={18}
-              style={{ width: "18px", height: "18px", cursor: "pointer" }}
-              onClick={async () => {
-                const textContent = `${timecode.mediaName} - ${formatTimecode(timecode.inTime)} ~ ${formatTimecode(timecode.outTime)}`;
-                try {
-                  await navigator.clipboard.writeText(textContent);
-                  toast('Texto copiado para a área de transferência!');
-                } catch (err) {
-                  console.error('Erro ao copiar para a área de transferência: ', err);
-                }
-              }}
-            />
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '8px', width: 'calc(100% - 32px)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', padding: "4px 12px 16px 12px" }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <CustomImage
+                aria-hidden
+                src="/trash.svg"
+                alt="Trash icon"
+                width={cardType === 'script' ? 16 : 18}
+                height={cardType === 'script' ? 16 : 18}
+                style={{ width: cardType === 'script' ? "16px" : "18px", height: cardType === 'script' ? "16px" : "18px", cursor: "pointer" }}
+                onClick={() => deleteTimecode(timecode.id)}
+              />
+              <CustomImage
+                aria-hidden
+                src="/copy.svg"
+                alt="Copy icon"
+                width={cardType === 'script' ? 15 : 17}
+                height={cardType === 'script' ? 15 : 17}
+                style={{ width: cardType === 'script' ? "15px" : "17px", height: cardType === 'script' ? "15px" : "17px", cursor: "pointer" }}
+                onClick={async () => {
+                  const textContent = `${timecode.mediaName} - ${formatTimecode(timecode.inTime)} ~ ${formatTimecode(timecode.outTime)}`;
+                  try {
+                    await navigator.clipboard.writeText(textContent);
+                    toast('Texto copiado para a área de transferência!');
+                  } catch (err) {
+                    console.error('Erro ao copiar para a área de transferência: ', err);
+                  }
+                }}
+              />
+            </div>
               <p
                 style={{
-                  fontSize: '10px',
+                  fontSize: cardType === 'script' ? '9px' : '10px',
                   fontWeight: '500',
                   lineHeight: '12px',
                   letterSpacing: '0.1px',
@@ -342,7 +346,6 @@ const TimecodeCard = ({
               >
                 {renderFilename(timecode.mediaName)}
               </p>
-            </div>
           </div>
         </>
       }

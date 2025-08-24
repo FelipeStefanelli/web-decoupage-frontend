@@ -635,11 +635,11 @@ const TimecodesSection = (props) => {
                         ))}
                     </div>
                     : !projectName ?
-                        <p style={props.script ? { padding: '24px 24px 24px 72px', margin: 0, width: 'calc(40% - 48px)' } : { padding: '24px', margin: 0 }}>
+                        <p style={props.script ? { padding: '24px 24px 24px 72px', margin: 0, width: '100%', height: "100%" } : { padding: '24px', margin: 0 }}>
                             Nenhum projeto selecionado
                         </p>
                         :
-                        <p style={props.script ? { padding: '24px 24px 24px 72px', margin: 0, width: 'calc(40% - 48px)' } : { padding: '24px', margin: 0 }}>
+                        <p style={props.script ? { padding: '24px 24px 24px 72px', margin: 0, width: '100%', height: "100%", backgroundColor: "rgb(231, 231, 231)" } : { padding: '24px', margin: 0 }}>
                             Nenhum timecode
                         </p>
                 }
@@ -774,7 +774,7 @@ const TimecodesSection = (props) => {
                                                                         style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '0px', cursor: 'pointer' }}
                                                                     >
                                                                         <Image src={script.activeFields.includes('description') ? "/description-active.svg" : "/description.svg"} alt="Descrição" width={14} height={14} style={{ width: "14px", height: "14px" }} />
-                                                                        <span style={{ fontSize: '13px', color: 'black' }}>Descrição</span>
+                                                                        <span style={{ fontSize: '12px', color: 'black', userSelect: 'none' }}>Descrição</span>
                                                                     </div>
                                                                 }
                                                                 {views['takes-view'] === 'show' &&
@@ -786,7 +786,7 @@ const TimecodesSection = (props) => {
                                                                         style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '0px', cursor: 'pointer' }}
                                                                     >
                                                                         <Image src={script.activeFields.includes('takes') ? "/V-active.svg" : "/V.svg"} alt="Takes" width={14} height={14} style={{ width: "14px", height: "14px" }} />
-                                                                        <span style={{ fontSize: '13px', color: 'black' }}>Takes</span>
+                                                                        <span style={{ fontSize: '12px', color: 'black', userSelect: 'none' }}>Takes</span>
                                                                     </div>
                                                                 }
                                                                 {views['audio-view'] === 'show' &&
@@ -798,7 +798,7 @@ const TimecodesSection = (props) => {
                                                                         style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '0px', cursor: 'pointer' }}
                                                                     >
                                                                         <Image src={script.activeFields.includes('audio') ? "/A-active.svg" : "/A.svg"} alt="Áudio" width={14} height={14} style={{ width: "14px", height: "14px" }} />
-                                                                        <span style={{ fontSize: '13px', color: 'black' }}>Áudio</span>
+                                                                        <span style={{ fontSize: '12px', color: 'black', userSelect: 'none' }}>Trilha</span>
                                                                     </div>
                                                                 }
                                                                 {views['locution-view'] === 'show' &&
@@ -810,7 +810,7 @@ const TimecodesSection = (props) => {
                                                                         style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '0px', cursor: 'pointer' }}
                                                                     >
                                                                         <Image src={script.activeFields.includes('locution') ? "/locution-active.svg" : "/locution.svg"} alt="Locução" width={14} height={14} style={{ width: "14px", height: "14px" }} />
-                                                                        <span style={{ fontSize: '13px', color: 'black' }}>Locução</span>
+                                                                        <span style={{ fontSize: '12px', color: 'black', userSelect: 'none' }}>Locução</span>
                                                                     </div>
                                                                 }
                                                                 {/** script.timecodes.filter(timecode => timecode.type === 'AV').length === 0 && **/}
@@ -823,7 +823,7 @@ const TimecodesSection = (props) => {
                                                                         style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '0px', cursor: 'pointer' }}
                                                                     >
                                                                         <Image src={script.activeFields.includes('audios') ? "/A-active.svg" : "/A.svg"} alt="Áudio" width={14} height={14} style={{ width: "14px", height: "14px" }} />
-                                                                        <span style={{ fontSize: '13px', color: 'black' }}>Áudios</span>
+                                                                        <span style={{ fontSize: '12px', color: 'black', userSelect: 'none' }}>Áudios</span>
                                                                     </div>
                                                                 }
                                                             </motion.div>
@@ -930,7 +930,7 @@ const TimecodesSection = (props) => {
                                                                 {script.timecodes.length === 0 ?
                                                                     <div
                                                                         id={`grid-scripts-${id}`}
-                                                                        style={{ position: 'relative', minHeight: '90px', display: 'grid', gap: '1rem' }}
+                                                                        style={{ position: 'relative', minHeight: '90px',  }}
                                                                         onDragOver={handleDragOver}
                                                                         onDrop={handleDrop}
                                                                     >
@@ -942,11 +942,7 @@ const TimecodesSection = (props) => {
                                                                     :
                                                                     <div
                                                                         key={id}
-                                                                        style={{
-                                                                            gridTemplateColumns: script.timecodes.filter(timecode => timecode.type === 'AV').length === 0 ? 'repeat(2, 1fr)' : '1fr 1fr',
-                                                                            display: 'grid',
-                                                                            gap: '1rem'
-                                                                        }}
+                                                                        className={`grid-scripts-container${script.timecodes.filter(timecode => timecode.type === 'AV').length === 0 ? "" : " av"}`}
                                                                         id={`grid-scripts-${id}`}
                                                                         onDragOver={handleDragOver}
                                                                         onDrop={handleDrop}
@@ -984,8 +980,8 @@ const TimecodesSection = (props) => {
                                                     <div style={{ width: "40%", display: 'flex', flexDirection: "column", gap: '8px' }}>
                                                         {script.activeFields.includes('audio') && views['audio-view'] === 'show' &&
                                                             <div style={{ display: 'flex', alignItems: 'center', gap: '14px', padding: '9px 12px', border: '0.5px solid rgb(188, 188, 188)', borderRadius: '4px' }}>
-                                                                <Image src="/A.svg" alt="Áudio" width={16} height={16} style={{ width: "16px", height: "16px" }} />
-                                                                <ScriptInput placeholder='Áudio' value={script.audio} onChange={value => changeScene(script, 'audio', true, value)} script={script} />
+                                                                <Image src="/A.svg" alt="Trilha" width={16} height={16} style={{ width: "16px", height: "16px" }} />
+                                                                <ScriptInput placeholder='Trilha' value={script.audio} onChange={value => changeScene(script, 'audio', true, value)} script={script} />
                                                             </div>
                                                         }
                                                         {script.activeFields.includes('locution') && views['locution-view'] === 'show' &&
@@ -1020,7 +1016,7 @@ const TimecodesSection = (props) => {
                                                                         key={id}
                                                                         style={{
                                                                             display: 'grid',
-                                                                            gridTemplateColumns: 'repeat(3, 1fr)',
+                                                                            gridTemplateColumns: 'repeat(1, 1fr)',
                                                                             gap: '1rem'
                                                                         }}
                                                                         id={`grid-audios-${id}`}

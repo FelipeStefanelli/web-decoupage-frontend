@@ -1,7 +1,7 @@
 import React from 'react';
 import Image from "@/components/Image";
 
-const TimecodeType = ({ id, timecode, setActiveMenu, updateTimecode, activeMenu, readOnly }) => {
+const TimecodeType = ({ id, timecode, setActiveMenu, updateTimecode, activeMenu, readOnly, cardType }) => {
     const handleIdClick = (id) => {
         setActiveMenu((prev) => (prev === id ? null : id));
     };
@@ -18,7 +18,7 @@ const TimecodeType = ({ id, timecode, setActiveMenu, updateTimecode, activeMenu,
                 display: "flex",
                 alignItems: "center",
                 margin: "6px 0 4px",
-                height: "30px",
+                height: cardType === 'script' ? "24px" : "28px",
                 borderTopRightRadius: activeMenu || !timecode.type ? "0" : "4px",
                 borderBottomRightRadius: activeMenu || !timecode.type ? "0" : "4px",
                 backgroundColor: timecode.type === "V" ? "rgba(221, 229, 236, 1)"
@@ -37,15 +37,15 @@ const TimecodeType = ({ id, timecode, setActiveMenu, updateTimecode, activeMenu,
                     cursor: readOnly || timecode.type === 'image' ? "text" : "pointer",
                     color: "rgba(158, 156, 168, 1)",
                     padding: "0 7px",
-                    fontSize: "15px",
-                    lineHeight: "15px",
+                    fontSize: cardType === 'script' ? "12px" : "14px",
+                    lineHeight: "11px",
                     fontWeight: "800",
                     borderTop: "1px solid rgba(158, 156, 168, 1)",
                     borderRight: "1px solid rgba(158, 156, 168, 1)",
                     borderBottom: "1px solid rgba(158, 156, 168, 1)",
                     userSelect: "none",
                     margin: 0,
-                    height: "30px",
+                    height: cardType === 'script' ? "24px" : "28px",
                     boxSizing: 'border-box',
                     pointerEvents: readOnly ? 'none' : 'auto'
                 }}
@@ -54,7 +54,7 @@ const TimecodeType = ({ id, timecode, setActiveMenu, updateTimecode, activeMenu,
             </span>
             {timecode.type && activeMenu !== timecode.id && (
                 <span style={{
-                    height: "30px",
+                    height: cardType === 'script' ? "24px" : "28px",
                     borderTop: "1px solid rgba(158, 156, 168, 1)",
                     borderBottom: "1px solid rgba(158, 156, 168, 1)",
                     borderRight: "1px solid rgba(158, 156, 168, 1)",
@@ -77,9 +77,9 @@ const TimecodeType = ({ id, timecode, setActiveMenu, updateTimecode, activeMenu,
                                 aria-hidden
                                 src="/V.svg"
                                 alt="Vídeo icon"
-                                width={18}
-                                height={17}
-                                style={{ width: "18px", height: "17px" }}
+                                width={cardType === 'script' ? 14 : 16}
+                                height={cardType === 'script' ? 15 : 17}
+                                style={{ width: cardType === 'script' ? "14px" : "16px", height: cardType === 'script' ? "15px" : "17px" }}
                             />
                         </div>
                         : timecode.type === "A" ?
@@ -97,9 +97,9 @@ const TimecodeType = ({ id, timecode, setActiveMenu, updateTimecode, activeMenu,
                                     aria-hidden
                                     src="/A.svg"
                                     alt="Áudio icon"
-                                    width={18}
-                                    height={17}
-                                    style={{ width: "18px", height: "17px" }}
+                                    width={cardType === 'script' ? 14 : 16}
+                                    height={cardType === 'script' ? 15 : 17}
+                                    style={{ width: cardType === 'script' ? "14px" : "16px", height: cardType === 'script' ? "15px" : "17px" }}
                                 />
                             </div>
                             : timecode.type === "AV" ?
@@ -117,9 +117,9 @@ const TimecodeType = ({ id, timecode, setActiveMenu, updateTimecode, activeMenu,
                                         aria-hidden
                                         src="/AV.svg"
                                         alt="AV icon"
-                                        width={18}
-                                        height={17}
-                                        style={{ width: "18px", height: "17px" }}
+                                        width={cardType === 'script' ? 14 : 16}
+                                        height={cardType === 'script' ? 15 : 17}
+                                        style={{ width: cardType === 'script' ? "14px" : "16px", height: cardType === 'script' ? "15px" : "17px" }}
                                     />
                                 </div>
                                 : timecode.type === "image" ?
@@ -137,9 +137,9 @@ const TimecodeType = ({ id, timecode, setActiveMenu, updateTimecode, activeMenu,
                                             aria-hidden
                                             src="/image.svg"
                                             alt="Image icon"
-                                            width={18}
-                                            height={17}
-                                            style={{ width: "18px", height: "17px" }}
+                                            width={cardType === 'script' ? 14 : 16}
+                                            height={cardType === 'script' ? 15 : 17}
+                                            style={{ width: cardType === 'script' ? "14px" : "16px", height: cardType === 'script' ? "15px" : "17px" }}
                                         />
                                     </div>
                                     :
@@ -150,7 +150,7 @@ const TimecodeType = ({ id, timecode, setActiveMenu, updateTimecode, activeMenu,
             {(activeMenu === timecode.id || !timecode.type) && !readOnly && (
                 <div
                     style={{
-                        height: "30px",
+                        height: cardType === 'script' ?  "24px" :  "28px",
                         width: "96px",
                         display: "flex",
                         backgroundColor: "white"
@@ -175,9 +175,9 @@ const TimecodeType = ({ id, timecode, setActiveMenu, updateTimecode, activeMenu,
                             aria-hidden
                             src="/V.svg"
                             alt="Vídeo icon"
-                            width={18}
-                            height={17}
-                            style={{ width: "18px", height: "17px" }}
+                            width={16}
+                            height={15}
+                            style={{ width: "16px", height: "15px" }}
                         />
                     </div>
                     <div
@@ -199,9 +199,9 @@ const TimecodeType = ({ id, timecode, setActiveMenu, updateTimecode, activeMenu,
                             aria-hidden
                             src="/A.svg"
                             alt="Áudio icon"
-                            width={18}
-                            height={17}
-                            style={{ width: "18px", height: "17px" }}
+                            width={16}
+                            height={15}
+                            style={{ width: "16px", height: "15px" }}
                         />
                     </div>
                     <div
@@ -225,9 +225,9 @@ const TimecodeType = ({ id, timecode, setActiveMenu, updateTimecode, activeMenu,
                             aria-hidden
                             src="/AV.svg"
                             alt="AV icon"
-                            width={18}
-                            height={17}
-                            style={{ width: "18px", height: "17px" }}
+                            width={16}
+                            height={15}
+                            style={{ width: "16px", height: "15px" }}
                         />
                     </div>
                 </div>

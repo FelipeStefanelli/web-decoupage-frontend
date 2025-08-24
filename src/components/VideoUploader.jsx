@@ -6,6 +6,7 @@ import { toast } from 'react-toastify';
 import { useVisibility } from '@/contexts/VisibilityContext';
 import ImageEditor from '@/components/ImageEditor';
 import { useHotkeys } from "../hooks/useHotKeys.js";
+import CustomPlayer from './CustomPlayer.jsx';
 
 const VideoUploader = () => {
   const [currentTimecodeIn, setCurrentTimecodeIn] = useState(null);
@@ -26,7 +27,8 @@ const VideoUploader = () => {
   const [selectedImageName, setSelectedImageName] = useState(null);
   const [showCropModal, setShowCropModal] = useState(false);
   const [transcriptionTotalTime, setTranscriptionTotalTime] = useState(null);
-
+  const [revSpeed, setRevSpeed] = useState(null);
+  const [fwdSpeed, setFwdSpeed] = useState(null);
   const [segments, setSegments] = useState([]);
 
   const videoRef = useRef(null);
@@ -337,7 +339,7 @@ const VideoUploader = () => {
   const oBtnRef = useRef(null);
   const iBtnRef = useRef(null);
   const dotBtnRef = useRef(null);
-  const SPEEDS = [1, 2, 4];
+  const SPEEDS = [1, 2, 3];
 
   const handleO = useCallback(() => {
     console.log("click O")
@@ -388,80 +390,96 @@ const VideoUploader = () => {
     st.idx = 0;
     st.rafId = null;
     st.lastTs = 0;
+    setRevSpeed(null);
+  }, []);
+
+  const stopForward = useCallback(() => {
+    fwdIdxRef.current = -1;
+    const el = getMediaEl();
+    if (el) el.playbackRate = 1;
+    setFwdSpeed(null);
   }, []);
 
   const startOrCycleReverse = useCallback(() => {
     const el = getMediaEl();
     if (!el) return;
 
-    // ao entrar no reverse, pausamos o player
+    // sair do forward e pausar player
+    stopForward();
     try { el.pause?.(); } catch { }
-    // desliga aceleração direta (L)
+
     fwdIdxRef.current = -1;
     el.playbackRate = 1;
 
     const st = revStateRef.current;
     if (st.active) {
-      // já estava retrocedendo -> cicla 1x → 2x → 4x → 1x
-      st.idx = (st.idx + 1) % SPEEDS.length;
-    } else {
-      st.active = true;
-      st.idx = 0;          // começa em 1x
-      st.lastTs = 0;
-
-      const step = (ts) => {
-        const s = revStateRef.current;
-        if (!s.active) return;
-
-        if (!s.lastTs) { s.lastTs = ts; s.rafId = requestAnimationFrame(step); return; }
-        const dt = (ts - s.lastTs) / 1000; // segundos desde o último frame
-        s.lastTs = ts;
-
-        const speed = SPEEDS[s.idx];       // 1, 2 ou 4
-        const media = getMediaEl();
-        if (!media) return;
-
-        const next = (media.currentTime || 0) - speed * dt;
-        media.currentTime = Math.max(0, next);
-
-        if (media.currentTime <= 0) {      // chegou no início
-          stopReverse();
-          return;
-        }
-        s.rafId = requestAnimationFrame(step);
-      };
-
-      st.rafId = requestAnimationFrame(step);
+      st.idx = (st.idx + 1) % SPEEDS.length;     // 1→2→4→1
+      setRevSpeed(SPEEDS[st.idx]);               // mostra ⏪ Nx
+      return;
     }
-  }, [mediaType, stopReverse]);
+
+    st.active = true;
+    st.idx = 0;
+    st.lastTs = 0;
+    setRevSpeed(SPEEDS[st.idx]);                 // ⏪ 1x
+
+    const step = (ts) => {
+      const s = revStateRef.current;
+      if (!s.active) return;
+
+      if (!s.lastTs) { s.lastTs = ts; s.rafId = requestAnimationFrame(step); return; }
+      const dt = (ts - s.lastTs) / 1000;
+      s.lastTs = ts;
+
+      const speed = SPEEDS[s.idx];
+      const media = getMediaEl();
+      if (!media) return;
+
+      const next = (media.currentTime || 0) - speed * dt;
+      media.currentTime = Math.max(0, next);
+
+      if (media.currentTime <= 0) {
+        stopReverse();
+        return;
+      }
+      s.rafId = requestAnimationFrame(step);
+    };
+
+    st.rafId = requestAnimationFrame(step);
+  }, [stopForward, stopReverse]);
 
   const accelForward = useCallback(() => {
     const el = getMediaEl();
     if (!el) return;
 
-    // sair do reverse, se estava
+    // sair do reverse e limpar indicador ⏪
     stopReverse();
 
-    // está acelerando? -> cicla; se não, começa em 1x
+    // cicla 1→2→4→1
     if (fwdIdxRef.current === -1) {
-      fwdIdxRef.current = 0;               // 1x
+      fwdIdxRef.current = 0;                      // começa em 1x
     } else {
-      fwdIdxRef.current = (fwdIdxRef.current + 1) % SPEEDS.length; // 1→2→4→1
+      fwdIdxRef.current = (fwdIdxRef.current + 1) % SPEEDS.length;
     }
 
     const rate = SPEEDS[fwdIdxRef.current];
     el.playbackRate = rate;
+
+    setFwdSpeed(rate);                             // <-- mostra ▶️ Nx
+
     const p = el.play?.();
     if (p && typeof p.then === 'function') p.catch(() => { });
-  }, [mediaType, stopReverse]);
+  }, [stopForward, stopReverse]);
 
   // opcional: ao pausar manualmente, desligue estados de shuttle/aceleração
   const resetRates = useCallback(() => {
     const el = getMediaEl();
     if (el) el.playbackRate = 1;
     fwdIdxRef.current = -1;
+    stopForward();
     stopReverse();
-  }, [mediaType, stopReverse]);
+
+  }, [mediaType, stopReverse, stopForward]);
 
   // seu toggle atual, adicionando reset quando pausar
   const togglePlayPause = useCallback(() => {
@@ -524,11 +542,12 @@ const VideoUploader = () => {
     "o": handleO,
     "i": handleI,
     ".": handleDot,
-    "<": () => seekBy(-1),
-    ">": () => seekBy(+1),
-    arrowleft: () => seekBy(-1),
-    arrowright: () => seekBy(+1),
+    "<": () => seekBy(-0.03),
+    ">": () => seekBy(+0.03),
+    arrowleft: () => seekBy(-0.03),
+    arrowright: () => seekBy(+0.03),
     j: startOrCycleReverse,
+    k: resetRates,
     l: accelForward,
   });
 
@@ -697,20 +716,59 @@ const VideoUploader = () => {
       )}
       {mediaSrc && (
         <div style={{ width: 'calc(100% - 32px)', padding: '16px' }}>
-          {mediaType === 'video' &&
-            <video
-              ref={videoRef}
-              controls
-              width="100%"
-              crossOrigin="anonymous"
-              tabIndex={-1}
-              onFocus={blurNextTick}
-              onPointerUpCapture={blurNextTick}
-            >
-              <source src={mediaSrc} type="video/mp4" />
-              Seu navegador não suporta vídeos.
-            </video>
-          }
+          <div style={{ position: 'relative' }}>
+            {mediaType === 'video' &&
+              <video
+                ref={videoRef}
+                controls
+                width="100%"
+                controlsList="nodownload noplaybackrate"
+                disablePictureInPicture
+                disableRemotePlayback
+                // iOS Safari (AirPlay):
+                x-webkit-airplay="deny"
+                tabIndex={-1}
+                onFocus={blurNextTick}
+                onPointerUpCapture={blurNextTick}
+              >
+                <source src={mediaSrc} type="video/mp4" />
+                Seu navegador não suporta vídeos.
+              </video>
+            }
+            {/** mediaType === 'video' &&
+              <CustomPlayer videoRef={videoRef} src={mediaSrc} type="video/mp4" />
+            **/}
+            <div style={{ position: 'absolute', bottom: '40px', right: 'calc(50% - 22px)', marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              {revSpeed !== null &&
+                <div style={{ display: 'flex', alignItems: 'center', gap: '4px', color: 'white', fontSize: '13px', fontWeight: '500', userSelect: 'none' }}>
+                  <Image
+                    aria-hidden
+                    src="/arrow-backward.svg"
+                    alt="Arrow backward"
+                    width={22}
+                    height={22}
+                    style={{ width: "22px", height: "22px" }}
+                    priority
+                  />
+                  <span>{revSpeed}x</span>
+                </div>
+              }
+              {fwdSpeed !== null &&
+                <div style={{ display: 'flex', alignItems: 'center', gap: '4px', color: 'white', fontSize: '13px', fontWeight: '500', userSelect: 'none' }}>
+                  <span>{fwdSpeed}x</span>
+                  <Image
+                    aria-hidden
+                    src="/arrow-forward.svg"
+                    alt="Arrow forward"
+                    width={22}
+                    height={22}
+                    style={{ width: "22px", height: "22px" }}
+                    priority
+                  />
+                </div>
+              }
+            </div>
+          </div>
           {mediaType === 'audio' && (
             <audio ref={audioRef} controls style={{ width: '100%' }}>
               <source src={mediaSrc} type={originalFilePath.type} />

@@ -240,8 +240,8 @@ const HeaderScriptPreview = ({ contentRef, data, projectName, exportDate, views 
                   <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '8px' }}>
                     {script.activeFields.includes('audio') && views['audio-view'] === 'show' && (
                       <div style={inputBoxStyle}>
-                        <Image src="/A-active.svg" alt="Áudio" width={18} style={iconStyle} />
-                        <ScriptInput readOnly placeholder="Áudio" value={script.audio} onChange={() => { }} script={script} />
+                        <Image src="/A-active.svg" alt="Trilha" width={18} style={iconStyle} />
+                        <ScriptInput readOnly placeholder="Trilha" value={script.audio} onChange={() => { }} script={script} />
                       </div>
                     )}
                     {script.activeFields.includes('locution') && views['locution-view'] === 'show' && (
@@ -389,7 +389,7 @@ const renderTimecodeCard = (timecode, id, scriptId, type = null, base64Map = nul
 const renderTakes = (script, id, base64Map) => {
   if (!script.timecodes?.length) return null;
   return (
-    <div id={`grid-scripts-${id}`} style={{ display: 'grid', gap: '1rem', gridTemplateColumns: 'repeat(2, 1fr)' }}>
+    <div id={`grid-scripts-${id}`} style={{ display: 'grid', gap: '8px', gridTemplateColumns: 'repeat(2, 1fr)' }}>
       {script.timecodes.map((tc, i) => renderTimecodeCard(tc, i, id, null, base64Map))}
     </div>
   );
@@ -397,7 +397,7 @@ const renderTakes = (script, id, base64Map) => {
 
 const renderAV = (timecode, id, scriptId, base64Map) => {
   return (
-    <div id={`grid-scripts-${id}`} key={`grid-scripts-${id}`} style={{ display: 'grid', gap: '1rem', gridTemplateColumns: 'repeat(2, 1fr)' }}>
+    <div id={`grid-scripts-${id}`} key={`grid-scripts-${id}`} style={{ display: 'grid', gap: '8px', gridTemplateColumns: 'repeat(2, 1fr)' }}>
       {renderTimecodeCard(timecode, id, scriptId, "AV", base64Map)}
     </div>
   );
@@ -406,7 +406,7 @@ const renderAV = (timecode, id, scriptId, base64Map) => {
 const renderAudios = (script, id) => {
   if (!script.audios?.length) return null;
   return (
-    <div id={`grid-audios-${id}`} style={{ display: 'grid', gap: '1rem', gridTemplateColumns: 'repeat(3, 1fr)' }}>
+    <div id={`grid-audios-${id}`} style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
       {script.audios.map((audio, i) => renderTimecodeCard(audio, i, id, "A"))}
     </div>
   );

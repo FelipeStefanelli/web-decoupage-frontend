@@ -22,11 +22,10 @@
   transition: transform 0.2s, opacity 0.2s;
 }
 
-.card.script {
-}
+.card.script {}
 
 .card.read-only {
-  cursor:default;
+  cursor: default;
 }
 
 .card.dragging {
@@ -71,13 +70,18 @@
 .section-title::after {
   content: '';
   position: absolute;
-  bottom: -5px; /* ajusta a distância da linha */
+  bottom: -5px;
+  /* ajusta a distância da linha */
   left: 0;
-  width: 24px;  /* ajuste a largura desejada */
-  height: 2px;  /* espessura da linha */
-  background-color: rgb(196, 48, 43); /* ou qualquer cor */
+  width: 24px;
+  /* ajuste a largura desejada */
+  height: 2px;
+  /* espessura da linha */
+  background-color: rgb(196, 48, 43);
+  /* ou qualquer cor */
   border-radius: 2px;
 }
+
 .section-title-saves {
   position: relative;
   display: inline-block;
@@ -86,13 +90,18 @@
 .section-title-saves::after {
   content: '';
   position: absolute;
-  bottom: -4px; /* ajusta a distância da linha */
+  bottom: -4px;
+  /* ajusta a distância da linha */
   left: 0;
-  width: 24px;  /* ajuste a largura desejada */
-  height: 2px;  /* espessura da linha */
-  background-color: rgb(196, 48, 43); /* ou qualquer cor */
+  width: 24px;
+  /* ajuste a largura desejada */
+  height: 2px;
+  /* espessura da linha */
+  background-color: rgb(196, 48, 43);
+  /* ou qualquer cor */
   border-radius: 2px;
 }
+
 .project-name-display {
   position: absolute;
   top: 0;
@@ -110,10 +119,11 @@
 }
 
 .scene-card:hover {
-  border: 1px solid rgba(255,122,122,0.3);
-  background: rgba(255,180,180,0.04);
-  box-shadow: 0 0 1px 1px rgba(255,122,122,0.5);
+  border: 1px solid rgba(255, 122, 122, 0.3);
+  background: rgba(255, 180, 180, 0.04);
+  box-shadow: 0 0 1px 1px rgba(255, 122, 122, 0.5);
 }
+
 .scene-header {
   background: rgb(231, 231, 231);
   transition: background .3s ease;
@@ -125,6 +135,22 @@
 
 .scene-card:hover .dashed-area {
   background: rgb(255, 180, 180, 0.01);
+}
+
+.grid-scripts-container {
+  grid-template-columns: repeat(2, 1fr);
+  display: grid;
+  gap: 1rem;
+}
+
+.grid-scripts-container.av {
+  grid-template-columns: repeat(1, 1fr);
+}
+
+@media (max-width: 1265px) {
+  .grid-scripts-container {
+    grid-template-columns: repeat(1, 1fr);
+  }
 }
 
 @media (max-width: 1024px) {
@@ -142,6 +168,7 @@
     opacity: 0;
     transform: translateY(20px);
   }
+
   100% {
     opacity: 1;
     transform: translateY(0);
@@ -150,22 +177,27 @@
 
 
 *::-webkit-scrollbar {
-  width: 8px; /* Largura da barra vertical */
-  height: 8px; /* Altura da barra horizontal */
+  width: 8px;
+  /* Largura da barra vertical */
+  height: 8px;
+  /* Altura da barra horizontal */
 }
 
 *::-webkit-scrollbar-track {
-  background: rgba(0, 0, 0, 0.05); /* Cor do trilho */
+  background: rgba(0, 0, 0, 0.05);
+  /* Cor do trilho */
   border-radius: 4px;
 }
 
 *::-webkit-scrollbar-thumb {
-  background: rgba(0, 0, 0, 0.4); /* Cor do "puxador" */
+  background: rgba(0, 0, 0, 0.4);
+  /* Cor do "puxador" */
   border-radius: 4px;
 }
 
 *::-webkit-scrollbar-thumb:hover {
-  background: rgba(0, 0, 0, 0.6); /* Cor ao passar o mouse */
+  background: rgba(0, 0, 0, 0.6);
+  /* Cor ao passar o mouse */
 }
 
 /* Firefox */
