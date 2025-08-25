@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback, useRef } from "react";
+import React, { useEffect, useState, useCallback, useRef, useMemo } from "react";
 import Image from "@/components/Image";
 import { formatTimecode } from "@/utils/utils";
 import { useVisibility } from '@/contexts/VisibilityContext';
@@ -14,97 +14,94 @@ const HeaderDecoupagePreview = ({ contentRef, data, projectName, exportDate }) =
   const [isDataEmpty, setIsDataEmpty] = useState(false);
 
   const { apiUrl } = useVisibility();
-
   const blobUrlCache = useRef(new Map());
+  const iframeRef = useRef(null);
 
+  // ---------- helpers imagem ----------
+  async function downscaleImage(blob, maxH) {
+    let bmp = null;
+    try { bmp = await createImageBitmap(blob); } catch { bmp = null; }
+
+    let w, h;
+    if (bmp) {
+      const ratio = bmp.height > maxH ? maxH / bmp.height : 1;
+      w = Math.round(bmp.width * ratio);
+      h = Math.round(bmp.height * ratio);
+    } else {
+      const img = await blobToImage(blob);
+      const ratio = img.naturalHeight > maxH ? maxH / img.naturalHeight : 1;
+      w = Math.round(img.naturalWidth * ratio);
+      h = Math.round(img.naturalHeight * ratio);
+    }
+
+    const canvas = document.createElement('canvas');
+    canvas.width = w; canvas.height = h;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) throw new Error('Canvas 2D context não disponível');
+
+    if (bmp) {
+      ctx.drawImage(bmp, 0, 0, w, h);
+      if (bmp.close) bmp.close();
+    } else {
+      const img = await blobToImage(blob);
+      ctx.drawImage(img, 0, 0, w, h);
+    }
+
+    const outBlob = await new Promise((resolve, reject) => {
+      if (canvas.toBlob) {
+        canvas.toBlob((b) => (b ? resolve(b) : reject(new Error('canvas.toBlob retornou null'))), 'image/jpeg', 0.72);
+      } else {
+        try {
+          const dataURL = canvas.toDataURL('image/jpeg', 0.72);
+          const b = dataURLToBlob(dataURL);
+          resolve(b);
+        } catch (err) { reject(err); }
+      }
+    });
+
+    return outBlob;
+  }
+
+  function blobToImage(blob) {
+    return new Promise((resolve, reject) => {
+      const url = URL.createObjectURL(blob);
+      const img = new Image();
+      img.decoding = 'async';
+      img.onload = () => { URL.revokeObjectURL(url); resolve(img); };
+      img.onerror = (e) => { URL.revokeObjectURL(url); reject(e); };
+      img.src = url;
+    });
+  }
+
+  function dataURLToBlob(dataURL) {
+    const [header, data] = dataURL.split(',');
+    const mime = header.match(/:(.*?);/)[1];
+    const bin = atob(data);
+    const len = bin.length;
+    const u8 = new Uint8Array(len);
+    for (let i = 0; i < len; i++) u8[i] = bin.charCodeAt(i);
+    return new Blob([u8], { type: mime });
+  }
+
+  // ---------- carregar thumbs ----------
   useEffect(() => {
+    let cancelled = false;
     setLoading(true);
-
-    async function downscaleImage(blob, maxH) {
-      let bmp = null;
-      try {
-        bmp = await createImageBitmap(blob);
-      } catch {
-        bmp = null;
-      }
-
-      let w, h;
-      if (bmp) {
-        const ratio = bmp.height > maxH ? maxH / bmp.height : 1;
-        w = Math.round(bmp.width * ratio);
-        h = Math.round(bmp.height * ratio);
-      } else {
-        const img = await blobToImage(blob);
-        const ratio = img.naturalHeight > maxH ? maxH / img.naturalHeight : 1;
-        w = Math.round(img.naturalWidth * ratio);
-        h = Math.round(img.naturalHeight * ratio);
-      }
-
-      const canvas = document.createElement('canvas');
-      canvas.width = w; canvas.height = h;
-      const ctx = canvas.getContext('2d');
-      if (!ctx) throw new Error('Canvas 2D context não disponível');
-
-      if (bmp) {
-        ctx.drawImage(bmp, 0, 0, w, h);
-        if (bmp.close) bmp.close();
-      } else {
-        const img = await blobToImage(blob);
-        ctx.drawImage(img, 0, 0, w, h);
-      }
-
-      const outBlob = await new Promise((resolve, reject) => {
-        if (canvas.toBlob) {
-          canvas.toBlob((b) => (b ? resolve(b) : reject(new Error('canvas.toBlob retornou null'))), 'image/jpeg', 0.72);
-        } else {
-          try {
-            const dataURL = canvas.toDataURL('image/jpeg', 0.72);
-            const b = dataURLToBlob(dataURL);
-            resolve(b);
-          } catch (err) {
-            reject(err);
-          }
-        }
-      });
-
-      return outBlob;
-    }
-
-    function blobToImage(blob) {
-      return new Promise((resolve, reject) => {
-        const url = URL.createObjectURL(blob);
-        const img = new Image();
-        img.decoding = 'async';
-        img.onload = () => { URL.revokeObjectURL(url); resolve(img); };
-        img.onerror = (e) => { URL.revokeObjectURL(url); reject(e); };
-        img.src = url;
-      });
-    }
-
-    function dataURLToBlob(dataURL) {
-      const [header, data] = dataURL.split(',');
-      const mime = header.match(/:(.*?);/)[1];
-      const bin = atob(data);
-      const len = bin.length;
-      const u8 = new Uint8Array(len);
-      for (let i = 0; i < len; i++) u8[i] = bin.charCodeAt(i);
-      return new Blob([u8], { type: mime });
-    }
 
     const loadImagesAsBlobUrls = async () => {
       const map = {};
       const timecodes = data?.timecodes || [];
 
       if (!timecodes.length) {
-        setIsDataEmpty(true);
-        setBase64Map({});
-        setLoading(false);
+        if (!cancelled) {
+          setIsDataEmpty(true);
+          setBase64Map({});
+          setLoading(false);
+        }
         return;
       }
-
       setIsDataEmpty(false);
 
-      // Limite de concorrência para evitar travar rede/CPU
       const pool = 6;
       let i = 0;
 
@@ -116,24 +113,18 @@ const HeaderDecoupagePreview = ({ contentRef, data, projectName, exportDate }) =
 
           const fullUrl = `${apiUrl ? apiUrl : 'http://localhost:4000'}${t.imageUrl}`;
           try {
-            // cache em memória para não refazer fetch/conversão
             if (blobUrlCache.current.has(t.id)) {
               const cached = blobUrlCache.current.get(t.id);
               if (cached) map[t.id] = cached;
               continue;
             }
-
             const res = await fetch(fullUrl, {
               method: 'GET',
-              headers: {
-                'ngrok-skip-browser-warning': '1',
-                'Accept': 'image/*'
-              }
+              headers: { 'ngrok-skip-browser-warning': '1', 'Accept': 'image/*' }
             });
             if (!res.ok) throw new Error(`HTTP ${res.status}`);
-            const blob = await res.blob();
 
-            // downscale/compress para thumbs (altura máx 900px)
+            const blob = await res.blob();
             const compressed = await downscaleImage(blob, 900);
             const url = URL.createObjectURL(compressed);
 
@@ -146,82 +137,81 @@ const HeaderDecoupagePreview = ({ contentRef, data, projectName, exportDate }) =
       }
 
       await Promise.all(Array.from({ length: pool }, worker));
-      setBase64Map(map);
-      setLoading(false);
+      if (!cancelled) {
+        setBase64Map(map);
+        setLoading(false);
+      }
     };
 
-    // dispara o carregamento
     loadImagesAsBlobUrls();
+    return () => { cancelled = true; };
   }, [data, apiUrl]);
 
+  // ---------- gerar PDF ----------
   const generatePreview = useCallback(async () => {
-    if (!contentRef.current) return
+    if (!contentRef.current) return;
     setLoading(true);
 
-    const element = contentRef.current
+    if (previewUrl) {
+      URL.revokeObjectURL(previewUrl);
+      setPreviewUrl(null);
+    }
+
+    const element = contentRef.current;
     const SCALE = Math.min(3, Math.max(2, Math.ceil(window.devicePixelRatio || 2)));
 
     const opt = {
       html2canvas: { scale: SCALE },
       jsPDF: { unit: 'pt', format: 'a4', orientation: 'portrait' },
       margin: [12, 0, 0, 0],
-      pagebreak: {
-        mode: ['css'],
-        avoid: '.card-selector',
-      }
-    }
+      pagebreak: { mode: ['css'], avoid: '.card-selector' }
+    };
 
     const pdfBlob = await html2pdf()
       .from(element)
       .set(opt)
       .toPdf()
-      .output('blob')
+      .output('blob');
 
-    const url = URL.createObjectURL(pdfBlob)
-    setPreviewUrl(url)
+    const url = URL.createObjectURL(pdfBlob);
+    setPreviewUrl(url);
     setLoading(false);
-    return () => previewUrl && URL.revokeObjectURL(previewUrl)
-  }, [contentRef]);
+  }, [contentRef, previewUrl]);
 
   useEffect(() => {
-    if (Object.keys(base64Map).length > 0) {
-      generatePreview();
-    }
-  }, [base64Map, generatePreview]);
+    if (Object.keys(base64Map).length > 0) generatePreview();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [base64Map]);
 
+  useEffect(() => {
+    return () => { if (previewUrl) URL.revokeObjectURL(previewUrl); };
+  }, [previewUrl]);
+
+  // ---------- filtros / agrupamento ----------
   function groupArray(arr, size) {
-    return arr.filter((t) => t.type).reduce((acc, _, i) => {
-      if (i % size === 0) {
-        acc.push(arr.slice(i, i + size));
-      }
-      return acc;
-    }, []);
+    const filteredByType = arr.filter((t) => t.type);
+    const out = [];
+    for (let i = 0; i < filteredByType.length; i += size) {
+      out.push(filteredByType.slice(i, i + size));
+    }
+    return out;
   }
 
   function filterArray(arr) {
-    return arr.filter(tc => (!filterText || tc.text?.toLowerCase().includes(filterText.toLowerCase())) && (selectedTypes.length === 0 || selectedTypes.includes(tc.type)))
+    return arr.filter(tc =>
+      (!filterText || tc.text?.toLowerCase().includes(filterText.toLowerCase())) &&
+      (selectedTypes.length === 0 || selectedTypes.includes(tc.type))
+    );
   }
 
-  const filtered = filterArray(data.timecodes);
-  const grouped = groupArray(filtered, 3);
-  const renderFilename = (filename, maxLength = 20) => {
-    if (!filename) return "";
+  const filtered = useMemo(() => filterArray(data.timecodes || []), [data.timecodes, filterText, selectedTypes]);
+  const grouped = useMemo(() => groupArray(filtered, 3), [filtered]);
 
-    const dotIndex = filename.lastIndexOf(".");
-    const hasExtension = dotIndex !== -1;
-    const name = hasExtension ? filename.slice(0, dotIndex) : filename;
-    const ext = hasExtension ? filename.slice(dotIndex) : "";
-
-    if (filename.length <= maxLength) return filename;
-
-    const allowedNameLength = maxLength - ext.length - 3;
-    const shortName = name.slice(0, allowedNameLength);
-
-    return `${shortName}..${ext}`;
-  };
+  // ---------- render ----------
   return (
     <div style={{ width: '100%', height: 'calc(100vh - 196px)', overflow: 'hidden' }}>
 
+      {/* barra de filtros (fora do PDF, mantida) */}
       <div
         style={{
           padding: '16px',
@@ -233,14 +223,7 @@ const HeaderDecoupagePreview = ({ contentRef, data, projectName, exportDate }) =
         }}
       >
         <>
-          <p
-            style={{
-              fontSize: "16px",
-              margin: "0 12px 0 0"
-            }}
-          >
-            Filtros
-          </p>
+          <p style={{ fontSize: "16px", margin: "0 12px 0 0" }}>Filtros</p>
           <input
             name="text-filter"
             type="text"
@@ -285,19 +268,12 @@ const HeaderDecoupagePreview = ({ contentRef, data, projectName, exportDate }) =
                 }}
                 title={alt}
               >
-                <Image
-                  aria-hidden
-                  src={icon}
-                  alt={alt}
-                  width={19}
-                  height={17}
-                  style={{ width: "19px", height: "17px" }}
-                />
+                <Image aria-hidden src={icon} alt={alt} width={19} height={17} style={{ width: 19, height: 17 }} />
               </button>
             ))}
           </div>
           <button
-          onClick={() => generatePreview()}
+            onClick={() => generatePreview()}
             style={{
               padding: "6px 12px",
               backgroundColor: "rgb(196, 48, 43)",
@@ -312,6 +288,8 @@ const HeaderDecoupagePreview = ({ contentRef, data, projectName, exportDate }) =
           </button>
         </>
       </div>
+
+      {/* área de preview (fora do PDF, mantida) */}
       <div style={{ display: 'flex', width: '100%', height: 'calc(100% - 70px)' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%', height: '100%' }}>
           {loading ? (
@@ -320,6 +298,7 @@ const HeaderDecoupagePreview = ({ contentRef, data, projectName, exportDate }) =
             <>
               {previewUrl &&
                 <iframe
+                  ref={iframeRef}
                   src={`${previewUrl}#zoom=page-width`}
                   title="Preview do PDF"
                   style={{ width: '100%', height: 'calc(100%)', border: 'none' }}
@@ -330,36 +309,68 @@ const HeaderDecoupagePreview = ({ contentRef, data, projectName, exportDate }) =
           )}
         </div>
       </div>
-      <div ref={contentRef} style={{ padding: "0 16px 16px 16px" }}>
-        <div>
-          <p style={{ margin: "0 8px 12px 8px", fontSize: "18px" }}>DECUPAGEM</p>
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "1fr 1fr",
-              border: "1px solid #363636",
-              borderRadius: "2px",
-              margin: "0 8px",
-            }}
-          >
-            <div style={cellStyle}><strong>Projeto</strong></div>
-            <div style={cellStyle}>{projectName}</div>
-            <div style={cellStyle}><strong>Data de exportação</strong></div>
-            <div style={cellStyle}>{exportDate}</div>
+
+      {/* =========================
+           AQUI começa o CONTEÚDO do PDF (APENAS esta parte foi redesenhada)
+           ========================= */}
+      <div
+        ref={contentRef}
+        style={{
+          background: "#f3f4f6",               // fundo neutro (não imprime no PDF, pq só a "página" é branca)
+          fontFamily: "Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif",
+          color: "#111827"
+        }}
+      >
+        {/* “Página” branca centralizada com cara de papel */}
+        <div
+          style={{
+            width: "794px",                    // ~A4 em px @96dpi
+            margin: "0 auto",
+            background: "#fff",
+            borderRadius: "12px",
+            overflow: "hidden"
+          }}
+        >
+          {/* Cabeçalho da decupagem */}
+          <div style={{ padding: "24px 28px 12px", borderBottom: "2px solid #e5e7eb" }}>
+            <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 16 }}>
+              <h1 style={{ fontSize: 22, lineHeight: "26px", margin: 0, letterSpacing: ".3px" }}>DECUPAGEM</h1>
+              {/**<span style={{ fontSize: 12, color: "#6b7280" }}>{exportDate}</span>**/}
+            </div>
+
+            {/* Metadados bonitos */}
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "1fr 1fr",
+                gap: 8,
+                marginTop: 12,
+                background: "#f9fafb",
+                border: "1px solid #e5e7eb",
+                borderRadius: 8,
+                padding: "10px 12px"
+              }}
+            >
+              <div style={{ fontSize: 12, color: "#6b7280" }}>Projeto</div>
+              <div style={{ fontSize: 12, color: "#111827", fontWeight: 600 }}>{projectName}</div>
+              <div style={{ fontSize: 12, color: "#6b7280" }}>Data de exportação</div>
+              <div style={{ fontSize: 12, color: "#111827", fontWeight: 600 }}>{exportDate}</div>
+            </div>
           </div>
-          <div
-            style={{
-              padding: "0 8px 12px 8px",
-            }}
-          >
+
+          {/* Seção dos CARDS (não alterados), com grid responsiva para 3 colunas */}
+          <div style={{ padding: "16px 20px 24px" }}>
             {grouped.map((group, groupId) => (
               <div
                 key={`group-${groupId}`}
                 className="card-selector"
                 style={{
-                  display: "flex",
+                  display: "grid",
+                  gridTemplateColumns: "repeat(3, 1fr)",
                   gap: "12px",
-                  paddingTop: "12px"
+                  paddingTop: "12px",
+                  pageBreakInside: "avoid",     // evita quebra do bloco entre páginas
+                  breakInside: "avoid"
                 }}
               >
                 {group.map((timecode, id) => (
@@ -368,14 +379,15 @@ const HeaderDecoupagePreview = ({ contentRef, data, projectName, exportDate }) =
                     style={{
                       border: "1px solid rgb(158, 158, 158)",
                       borderRadius: "6px",
-                      flex: 1
+                      flex: 1,
+                      background: "#fff"
                     }}
                   >
                     <div
                       style={{
                         display: "flex",
                         flexDirection: "column",
-                        gap: "6px",
+                        gap: "4px",
                         backgroundColor: "#fff",
                         borderRadius: "6px",
                       }}
@@ -397,7 +409,7 @@ const HeaderDecoupagePreview = ({ contentRef, data, projectName, exportDate }) =
                       >
                         <img
                           loading="lazy"
-                          src={base64Map[timecode.id] || `http://localhost:4000${timecode.imageUrl}`}
+                          src={base64Map[timecode.id] || `${apiUrl ? apiUrl : 'http://localhost:4000'}${timecode.imageUrl}`}
                           alt={`Timecode ${timecode.inTime}- ${timecode.outTime}`}
                           style={{
                             maxHeight: '100px',
@@ -415,6 +427,8 @@ const HeaderDecoupagePreview = ({ contentRef, data, projectName, exportDate }) =
                           }}
                         />
                       </div>
+
+                      {/* ======= CARDS (conteúdo interno inalterado) ======= */}
                       <div
                         style={{
                           display: "flex",
@@ -430,7 +444,7 @@ const HeaderDecoupagePreview = ({ contentRef, data, projectName, exportDate }) =
                             alignItems: "center",
                             justifyContent: "space-between",
                             width: "100%",
-                            padding: "2px 8px 8px",
+                            padding: "0px 8px 8px",
                             fontSize: "15px",
                             fontWeight: 800,
                             color: "rgb(14, 11, 25)",
@@ -445,14 +459,8 @@ const HeaderDecoupagePreview = ({ contentRef, data, projectName, exportDate }) =
                               gap: "6px",
                             }}
                           >
-                            {id + 1}
-                            <div
-                              style={{
-                                width: "2px",
-                                height: "15px",
-                                backgroundColor: "rgb(14, 11, 25)",
-                              }}
-                            ></div>
+                            <span style={{ fontSize: "15px", lineHeight: "15px" }}>{id + 1}</span>
+                            <div style={{ width: "2px", height: "15px", backgroundColor: "rgb(14, 11, 25)" }} />
                             {timecode.type !== "" &&
                               <Image
                                 src={
@@ -467,12 +475,12 @@ const HeaderDecoupagePreview = ({ contentRef, data, projectName, exportDate }) =
                                           : ""
                                 }
                                 alt="Type icon"
-                                width={18}
+                                width={16}
                                 style={{ display: "block" }}
                               />
                             }
                           </div>
-                          <div style={{ marginBottom: "6px" }}>
+                          <div style={{ marginBottom: "4px" }}>
                             <ReactStars
                               value={timecode.rating}
                               count={3}
@@ -483,6 +491,7 @@ const HeaderDecoupagePreview = ({ contentRef, data, projectName, exportDate }) =
                             />
                           </div>
                         </div>
+
                         {timecode.text &&
                           <p
                             style={{
@@ -509,6 +518,7 @@ const HeaderDecoupagePreview = ({ contentRef, data, projectName, exportDate }) =
                           </p>
                         }
                       </div>
+
                       <div
                         style={{
                           display: "flex",
@@ -556,6 +566,7 @@ const HeaderDecoupagePreview = ({ contentRef, data, projectName, exportDate }) =
                           {renderFilename(timecode.mediaName)}
                         </p>
                       </div>
+                      {/* ======= fim dos CARDS (inalterados) ======= */}
                     </div>
                   </div>
                 ))}
@@ -563,16 +574,25 @@ const HeaderDecoupagePreview = ({ contentRef, data, projectName, exportDate }) =
             ))}
           </div>
         </div>
+        {/* fim da “página” */}
       </div>
+      {/* =========================
+           FIM do conteúdo do PDF
+           ========================= */}
     </div>
   );
 };
 
-const cellStyle = {
-  padding: "8px",
-  border: "1px solid #ccc",
-  fontSize: "14px",
-  color: "#222",
+const renderFilename = (filename, maxLength = 20) => {
+  if (!filename) return "";
+  const dotIndex = filename.lastIndexOf(".");
+  const hasExtension = dotIndex !== -1;
+  const name = hasExtension ? filename.slice(0, dotIndex) : filename;
+  const ext = hasExtension ? filename.slice(dotIndex) : "";
+  if (filename.length <= maxLength) return filename;
+  const allowedNameLength = maxLength - ext.length - 3;
+  const shortName = name.slice(0, allowedNameLength);
+  return `${shortName}..${ext}`;
 };
 
 export default HeaderDecoupagePreview;

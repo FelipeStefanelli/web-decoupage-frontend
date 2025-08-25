@@ -4,7 +4,8 @@ const TimecodeInput = ({
   timecode,
   updateTimecode,
   readOnly = false,
-  setIsDraggingOverTextarea
+  setIsDraggingOverTextarea,
+  cardType = null,
 }) => {
   const [provValue, setProvValue] = useState('');
   const [isFocused, setIsFocused] = useState(false);
@@ -72,16 +73,16 @@ const TimecodeInput = ({
       onMouseEnter={() => setIsDraggingOverTextarea(true)}
       onMouseLeave={() => setIsDraggingOverTextarea(false)}
       style={{
-        width: 'calc(100% - 30px)',
-        height: '32px',
+        width: 'calc(100% - 34px)',
+        height: cardType === 'script' ? '24px' : '32px',
         margin: '0px 8px 8px 8px',
         backgroundColor: 'rgb(231, 231, 231)',
-        padding: '8px 0 8px 12px',
+        padding: '8px 4px 8px 12px',
         border: 'none',
         outline: 'none',
         resize: 'none',
         color: 'black',
-        fontSize: 13,
+        fontSize: cardType === 'script' ? 11 : 13,
         flexGrow: 1,
         cursor: 'text',
         borderLeft,

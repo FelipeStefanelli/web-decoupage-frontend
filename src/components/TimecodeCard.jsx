@@ -280,6 +280,7 @@ const TimecodeCard = ({
           timecode={timecode}
           updateTimecode={updateTimecode}
           setIsDraggingOverTextarea={setIsDraggingOverTextarea}
+          cardType={cardType}
         />
       }
 

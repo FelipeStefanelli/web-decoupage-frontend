@@ -147,6 +147,7 @@ export default function Header(props) {
     const year = now.getFullYear();
 
     const exportDate = `${hours}:${minutes} - ${day}/${month}/${year}`;
+    //const exportDate = `${day}/${month}/${year}`;
 
     return (
         <div

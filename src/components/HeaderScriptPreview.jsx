@@ -22,11 +22,7 @@ const HeaderScriptPreview = ({ contentRef, data, projectName, exportDate, views 
 
     async function downscaleImage(blob, maxH) {
       let bmp = null;
-      try {
-        bmp = await createImageBitmap(blob);
-      } catch {
-        bmp = null;
-      }
+      try { bmp = await createImageBitmap(blob); } catch { bmp = null; }
 
       let w, h;
       if (bmp) {
@@ -61,9 +57,7 @@ const HeaderScriptPreview = ({ contentRef, data, projectName, exportDate, views 
             const dataURL = canvas.toDataURL('image/jpeg', 0.72);
             const b = dataURLToBlob(dataURL);
             resolve(b);
-          } catch (err) {
-            reject(err);
-          }
+          } catch (err) { reject(err); }
         }
       });
 
@@ -210,64 +204,136 @@ const HeaderScriptPreview = ({ contentRef, data, projectName, exportDate, views 
           </>
         }
       </div>
-      <div ref={contentRef} style={{ padding: "0 16px 16px 16px" }}>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-          <span style={{ fontSize: '18px' }}>ROTEIRO</span>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', border: '1px solid rgb(180, 180, 180)', borderRadius: '8px' }}>
-            <div style={cellStyle}><strong>Projeto</strong></div>
-            <div style={cellStyle}>{projectName}</div>
-            <div style={cellStyle}><strong>Data de exportação</strong></div>
-            <div style={cellStyle}>{exportDate}</div>
-          </div>
-          {data?.script?.map((script, id) => (
-            <div key={id} className='scene-selector' style={{ border: '1px solid rgb(200, 200, 200)', borderRadius: '8px' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', borderTopLeftRadius: '8px', borderTopRightRadius: '8px', backgroundColor: 'rgb(231, 231, 231)', padding: '12px 16px', fontSize: '16px', lineHeight: '18px', color: 'rgb(14, 11, 25)' }}>{script.name}</div>
-              {script.activeFields.length === 0 ? (
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px 0' }}>
-                  <span>Essa cena não contém <b>elementos</b>!</span>
-                </div>
-              ) : (
-                <div style={{ display: 'flex', gap: '16px', padding: '16px' }}>
-                  <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                    {script.activeFields.includes('description') && views['description-view'] === 'show' && (
-                      <div style={inputBoxStyle}>
-                        <Image src="/description-active.svg" alt="Descrição" width={18} style={iconStyle} />
-                        <ScriptInput readOnly placeholder="Descrição" value={script.description} onChange={() => { }} script={script} />
-                      </div>
-                    )}
-                    {script.activeFields.includes('takes') && views['takes-view'] === 'show' && renderTakes(script, id, base64Map)}
-                  </div>
-                  <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                    {script.activeFields.includes('audio') && views['audio-view'] === 'show' && (
-                      <div style={inputBoxStyle}>
-                        <Image src="/A-active.svg" alt="Trilha" width={18} style={iconStyle} />
-                        <ScriptInput readOnly placeholder="Trilha" value={script.audio} onChange={() => { }} script={script} />
-                      </div>
-                    )}
-                    {script.activeFields.includes('locution') && views['locution-view'] === 'show' && (
-                      <div style={inputBoxStyle}>
-                        <Image src="/locution-active.svg" alt="Locução" width={18} style={iconStyle} />
-                        <ScriptInput readOnly placeholder="Locução" value={script.locution} onChange={() => { }} script={script} />
-                      </div>
-                    )}
-                    {script.activeFields.includes('audios') && views['audios-view'] === 'show' && renderAudios(script, id)}
-                    {script.activeFields.includes('audios') && views['audios-view'] === 'show' && script.timecodes.filter(t => t.type === 'AV').map((t, tid) => renderAV(t, tid, id, base64Map))}
-                  </div>
-                </div>
-              )}
+
+      {/* =========================
+          A PARTIR DAQUI: SÓ o CONTEÚDO DENTRO DO PDF (contentRef) FOI ESTILIZADO
+          ========================= */}
+      <div
+        ref={contentRef}
+        style={{
+          background: "#f3f4f6",
+          fontFamily: "Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif",
+          color: "#111827"
+        }}
+      >
+        {/* “Página” branca centralizada com cara de papel */}
+        <div
+          style={{
+            width: "794px",                    // ~A4 em px @96dpi
+            margin: "0 auto",
+            background: "#fff",
+            borderRadius: "12px",
+            overflow: "hidden"
+          }}
+        >
+          {/* Cabeçalho do roteiro */}
+          <div style={{ padding: "24px 28px 12px", borderBottom: "2px solid #e5e7eb" }}>
+            <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 16 }}>
+              <h1 style={{ fontSize: 22, lineHeight: "26px", margin: 0, letterSpacing: ".3px" }}>ROTEIRO</h1>
+              {/**<span style={{ fontSize: 12, color: "#6b7280" }}>{exportDate}</span>**/}
             </div>
-          ))}
+
+            {/* Metadados bonitos */}
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "1fr 1fr",
+                gap: 8,
+                marginTop: 12,
+                background: "#f9fafb",
+                border: "1px solid #e5e7eb",
+                borderRadius: 8,
+                padding: "10px 12px"
+              }}
+            >
+              <div style={{ fontSize: 12, color: "#6b7280" }}>Projeto</div>
+              <div style={{ fontSize: 12, color: "#111827", fontWeight: 600 }}>{projectName}</div>
+              <div style={{ fontSize: 12, color: "#6b7280" }}>Data de exportação</div>
+              <div style={{ fontSize: 12, color: "#111827", fontWeight: 600 }}>{exportDate}</div>
+            </div>
+          </div>
+
+          {/* Seções de cenas (mantendo cards e campos) */}
+          <div style={{ padding: "16px 20px 24px" }}>
+            {data?.script?.map((script, id) => (
+              <section
+                key={id}
+                className='scene-selector'
+                style={{
+                  marginBottom: 16,
+                  pageBreakInside: "avoid",
+                  breakInside: "avoid",
+                  border: "1px solid #e5e7eb",
+                  borderRadius: 10,
+                  overflow: "hidden",
+                  background: "#fff"
+                }}
+              >
+                {/* Título da cena */}
+                <div
+                  style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    backgroundColor: '#f3f4f6',
+                    borderBottom: '1px solid #e5e7eb',
+                    padding: '12px 16px',
+                    fontSize: '16px',
+                    lineHeight: '18px',
+                    color: '#111827',
+                    fontWeight: 600
+                  }}
+                >
+                  {script.name}
+                </div>
+
+                {script.activeFields.length === 0 ? (
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px 0' }}>
+                    <span>Essa cena não contém <b>elementos</b>!</span>
+                  </div>
+                ) : (
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, padding: '16px' }}>
+                    {/* Coluna esquerda */}
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                      {script.activeFields.includes('description') && views['description-view'] === 'show' && (
+                        <div style={inputBoxStyle}>
+                          <Image src="/description-active.svg" alt="Descrição" width={18} />
+                          <ScriptInput readOnly placeholder="Descrição" value={script.description} onChange={() => { }} script={script} />
+                        </div>
+                      )}
+                      {script.activeFields.includes('takes') && views['takes-view'] === 'show' && renderTakes(script, id, base64Map)}
+                    </div>
+
+                    {/* Coluna direita */}
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                      {script.activeFields.includes('audio') && views['audio-view'] === 'show' && (
+                        <div style={inputBoxStyle}>
+                          <Image src="/A-active.svg" alt="Trilha" width={18} />
+                          <ScriptInput readOnly placeholder="Trilha" value={script.audio} onChange={() => { }} script={script} />
+                        </div>
+                      )}
+                      {script.activeFields.includes('locution') && views['locution-view'] === 'show' && (
+                        <div style={inputBoxStyle}>
+                          <Image src="/locution-active.svg" alt="Locução" width={15} height={16} />
+                          <ScriptInput readOnly placeholder="Locução" value={script.locution} onChange={() => { }} script={script} />
+                        </div>
+                      )}
+                      {script.activeFields.includes('audios') && views['audios-view'] === 'show' && renderAudios(script, id)}
+                      {script.activeFields.includes('audios') && views['audios-view'] === 'show' && script.timecodes.filter(t => t.type === 'AV').map((t, tid) => renderAV(t, tid, id, base64Map))}
+                    </div>
+                  </div>
+                )}
+              </section>
+            ))}
+          </div>
         </div>
+        {/* fim da “página” */}
       </div>
+      {/* =========================
+          FIM do conteúdo estilizado do PDF
+          ========================= */}
     </div>
   );
-};
-
-const cellStyle = {
-  padding: '8px',
-  border: '1px solid #ccc',
-  fontSize: '14px',
-  color: '#222',
 };
 
 const inputBoxStyle = {
@@ -324,12 +390,12 @@ const renderTimecodeCard = (timecode, id, scriptId, type = null, base64Map = nul
             />
           </div>
         )}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', alignItems: 'flex-start', padding: '8px' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', alignItems: 'flex-start', padding: '4px 8px' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: "space-between", width: "100%", padding: '0 8px 0 0' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <p style={{ margin: 0, fontSize: '15px', lineHeight: '15px', fontWeight: '800', color: 'rgb(14, 11, 25)' }}>{id + 1}</p>
+              <p style={{ margin: 0, fontSize: '13px', lineHeight: '13px', fontWeight: '800', color: 'rgb(14, 11, 25)' }}>{id + 1}</p>
               <div style={{ width: '2px', height: '15px', backgroundColor: 'rgb(14, 11, 25)' }}></div>
-              {timecode.type && <Image src={`/${typeToIcon(timecode.type)}`} alt="Type icon" width={18} style={{ display: 'block' }} />}
+              {timecode.type && <Image src={`/${typeToIcon(timecode.type)}`} alt="Type icon" width={16} style={{ display: 'block' }} />}
             </div>
             <div style={{ marginBottom: "6px" }}>
               <ReactStars
@@ -347,7 +413,7 @@ const renderTimecodeCard = (timecode, id, scriptId, type = null, base64Map = nul
               style={{
                 width: "calc(100% - 26px)",
                 padding: "10px 8px 12px",
-                margin: "0 16px 4px 4px",
+                margin: "0 16px 8px 4px",
                 fontSize: "12px",
                 lineHeight: "12px",
                 fontWeight: 500,
@@ -369,7 +435,7 @@ const renderTimecodeCard = (timecode, id, scriptId, type = null, base64Map = nul
           }
         </div>
         {type !== "AV" &&
-          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '1px', padding: '0 16px', fontSize: '10px', fontWeight: '600', color: 'rgb(14, 11, 25)' }}>
+          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '1px', padding: '0 16px', fontSize: '9px', fontWeight: '600', color: 'rgb(14, 11, 25)' }}>
             <span>{formatTimecode(timecode.inTime)}</span>
             <span>·</span>
             <span>{formatTimecode(timecode.outTime)}</span>
