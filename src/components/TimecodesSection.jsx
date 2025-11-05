@@ -7,7 +7,7 @@ import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { useVisibility } from '@/contexts/VisibilityContext';
 import ScriptSelector from './ScriptSelector';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, transform } from 'framer-motion';
 import { useBase64Images } from "../hooks/useBase64Images";
 
 const TimecodesSection = (props) => {
@@ -745,7 +745,7 @@ const TimecodesSection = (props) => {
                                         <div className='scene-card'>
                                             <div className='scene-header' style={{ display: "flex", justifyContent: 'space-between', alignItems: 'center', borderTopRightRadius: '8px', borderTopLeftRadius: '8px', padding: '12px' }}>
                                                 <p style={{ fontSize: "16px", color: 'black', margin: 0 }}>{script.name}</p>
-                                                <div style={{ display: "flex", gap: '16px', fontSize: "18px", position: 'relative' }}>
+                                                <div style={{ display: "flex", alignItems: "center", gap: '16px', fontSize: "18px", position: 'relative' }}>
                                                     <AnimatePresence>
                                                         {((script.activeFields.length === 0) || dropdownOpen === id) && (
                                                             <motion.div
@@ -771,10 +771,10 @@ const TimecodesSection = (props) => {
                                                                             setDropdownOpen(id);
                                                                             changeScene(script, 'description', false);
                                                                         }}
-                                                                        style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '0px', cursor: 'pointer' }}
+                                                                        style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '0px', cursor: 'pointer' }}
                                                                     >
                                                                         <Image src={script.activeFields.includes('description') ? "/description-active.svg" : "/description.svg"} alt="Descrição" width={14} height={14} style={{ width: "14px", height: "14px" }} />
-                                                                        <span style={{ fontSize: '12px', color: 'black', userSelect: 'none' }}>Descrição</span>
+                                                                        <span style={{ fontSize: '11px', color: 'black', userSelect: 'none' }}>Descrição</span>
                                                                     </div>
                                                                 }
                                                                 {views['takes-view'] === 'show' &&
@@ -783,10 +783,10 @@ const TimecodesSection = (props) => {
                                                                             setDropdownOpen(id);
                                                                             changeScene(script, 'takes', false)
                                                                         }}
-                                                                        style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '0px', cursor: 'pointer' }}
+                                                                        style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '0px', cursor: 'pointer' }}
                                                                     >
                                                                         <Image src={script.activeFields.includes('takes') ? "/V-active.svg" : "/V.svg"} alt="Takes" width={14} height={14} style={{ width: "14px", height: "14px" }} />
-                                                                        <span style={{ fontSize: '12px', color: 'black', userSelect: 'none' }}>Takes</span>
+                                                                        <span style={{ fontSize: '11px', color: 'black', userSelect: 'none' }}>Takes</span>
                                                                     </div>
                                                                 }
                                                                 {views['audio-view'] === 'show' &&
@@ -795,10 +795,10 @@ const TimecodesSection = (props) => {
                                                                             setDropdownOpen(id);
                                                                             changeScene(script, 'audio', false)
                                                                         }}
-                                                                        style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '0px', cursor: 'pointer' }}
+                                                                        style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '0px', cursor: 'pointer' }}
                                                                     >
                                                                         <Image src={script.activeFields.includes('audio') ? "/A-active.svg" : "/A.svg"} alt="Áudio" width={14} height={14} style={{ width: "14px", height: "14px" }} />
-                                                                        <span style={{ fontSize: '12px', color: 'black', userSelect: 'none' }}>Trilha</span>
+                                                                        <span style={{ fontSize: '11px', color: 'black', userSelect: 'none' }}>Trilha</span>
                                                                     </div>
                                                                 }
                                                                 {views['locution-view'] === 'show' &&
@@ -807,10 +807,10 @@ const TimecodesSection = (props) => {
                                                                             setDropdownOpen(id);
                                                                             changeScene(script, 'locution', false)
                                                                         }}
-                                                                        style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '0px', cursor: 'pointer' }}
+                                                                        style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '0px', cursor: 'pointer' }}
                                                                     >
-                                                                        <Image src={script.activeFields.includes('locution') ? "/locution-active.svg" : "/locution.svg"} alt="Locução" width={14} height={14} style={{ width: "14px", height: "14px" }} />
-                                                                        <span style={{ fontSize: '12px', color: 'black', userSelect: 'none' }}>Locução</span>
+                                                                        <Image src={script.activeFields.includes('locution') ? "/locution-active.svg" : "/locution.svg"} alt="Locução" width={12} height={12} style={{ width: "12px", height: "12px" }} />
+                                                                        <span style={{ fontSize: '11px', color: 'black', userSelect: 'none' }}>Locução</span>
                                                                     </div>
                                                                 }
                                                                 {/** script.timecodes.filter(timecode => timecode.type === 'AV').length === 0 && **/}
@@ -831,11 +831,11 @@ const TimecodesSection = (props) => {
                                                     </AnimatePresence>
                                                     <Image
                                                         aria-hidden
-                                                        src="/plus-black.svg"
+                                                        src="/arrow-right.svg"
                                                         alt="Adicionar elementos"
-                                                        width={20}
-                                                        height={20}
-                                                        style={{ width: "20px", height: "20px", cursor: 'pointer' }}
+                                                        width={15}
+                                                        height={15}
+                                                        style={{ width: "15px", height: "15px", cursor: 'pointer', transform: dropdownOpen === id ? "rotate(180deg)" : "rotate(0deg)" }}
                                                         priority
                                                         onClick={() => toggleDropdown(id)}
                                                     />
@@ -977,7 +977,7 @@ const TimecodesSection = (props) => {
                                                             </div>
                                                         }
                                                     </div>
-                                                    <div style={{ width: "40%", display: 'flex', flexDirection: "column", gap: '8px' }}>
+                                                    <div style={{ width: "40%", display: 'flex', flexDirection: "column", gap: '8px', paddingLeft: "16px" , borderLeft: "1px solid #bdbdbdff" }}>
                                                         {script.activeFields.includes('audio') && views['audio-view'] === 'show' &&
                                                             <div style={{ display: 'flex', alignItems: 'center', gap: '14px', padding: '9px 12px', border: '0.5px solid rgb(188, 188, 188)', borderRadius: '4px' }}>
                                                                 <Image src="/A.svg" alt="Trilha" width={16} height={16} style={{ width: "16px", height: "16px" }} />

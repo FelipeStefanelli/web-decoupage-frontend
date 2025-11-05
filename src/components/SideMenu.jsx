@@ -388,8 +388,8 @@ export default function SideMenu() {
                         <Image
                           src="/import3.svg"
                           alt="Importar"
-                          width={20}
-                          height={20}
+                          width={18}
+                          height={18}
                           style={{ marginLeft: '8px', cursor: 'pointer', opacity: 0.7 }}
                           onClick={() => importProject(backup.name)}
                         />
@@ -397,8 +397,8 @@ export default function SideMenu() {
                       <Image
                         src="/trash.svg"
                         alt="Excluir"
-                        width={24}
-                        height={24}
+                        width={22}
+                        height={22}
                         style={{ marginLeft: '12px', cursor: 'pointer', opacity: 0.7 }}
                         onClick={() => deleteBackup(backup.name)}
                       />
@@ -429,16 +429,16 @@ export default function SideMenu() {
             <Image
               src="/paste.svg"
               alt="Colar"
-              width={24}
-              height={24}
+              width={20}
+              height={20}
               style={{ marginLeft: '12px', cursor: 'pointer', opacity: 0.7 }}
               onClick={() => pasteFromClipboard()}
             />
             <Image
               src="/trash.svg"
               alt="Excluir"
-              width={24}
-              height={24}
+              width={20}
+              height={20}
               style={{ marginLeft: '12px', cursor: 'pointer', opacity: 0.7 }}
               onClick={() => {
                 setApiUrl('');

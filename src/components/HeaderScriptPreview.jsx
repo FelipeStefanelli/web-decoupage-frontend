@@ -248,6 +248,8 @@ const HeaderScriptPreview = ({ contentRef, data, projectName, exportDate, views 
             >
               <div style={{ fontSize: 12, color: "#6b7280" }}>Projeto</div>
               <div style={{ fontSize: 12, color: "#111827", fontWeight: 600 }}>{projectName}</div>
+              <div style={{ fontSize: 12, color: "#6b7280" }}>Exportado por</div>
+              <div style={{ fontSize: 12, color: "#111827", fontWeight: 600 }}>Sara Augusto</div>
               <div style={{ fontSize: 12, color: "#6b7280" }}>Data de exportação</div>
               <div style={{ fontSize: 12, color: "#111827", fontWeight: 600 }}>{exportDate}</div>
             </div>
@@ -263,7 +265,7 @@ const HeaderScriptPreview = ({ contentRef, data, projectName, exportDate, views 
                   marginBottom: 16,
                   pageBreakInside: "avoid",
                   breakInside: "avoid",
-                  border: "1px solid #e5e7eb",
+                  border: "1px solid #bdbdbdff",
                   borderRadius: 10,
                   overflow: "hidden",
                   background: "#fff"
@@ -303,9 +305,8 @@ const HeaderScriptPreview = ({ contentRef, data, projectName, exportDate, views 
                       )}
                       {script.activeFields.includes('takes') && views['takes-view'] === 'show' && renderTakes(script, id, base64Map)}
                     </div>
-
                     {/* Coluna direita */}
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 8, paddingLeft: "16px" , borderLeft: "1px solid #bdbdbdff" }}>
                       {script.activeFields.includes('audio') && views['audio-view'] === 'show' && (
                         <div style={inputBoxStyle}>
                           <Image src="/A-active.svg" alt="Trilha" width={18} />
@@ -345,14 +346,9 @@ const inputBoxStyle = {
   borderRadius: '8px',
 };
 
-const iconStyle = {
-  width: '18px',
-  height: '18px',
-};
-
 const renderTimecodeCard = (timecode, id, scriptId, type = null, base64Map = null) => {
   return (
-    <div key={`${scriptId}-${id}`} style={{ border: '1px solid rgb(200, 200, 200)', borderRadius: '6px', }}>
+    <div key={`${scriptId}-${id}`} style={{ border: '1px solid rgba(200, 200, 200)', borderRadius: '6px', boxShadow: "rgba(0, 0, 0, 0.9) 2px 2px 4px" }}>
       <div style={{ display: 'flex', flexDirection: 'column', backgroundColor: '#fff', borderRadius: '6px' }}>
         {timecode.imageUrl && base64Map && (
           <div
@@ -390,22 +386,12 @@ const renderTimecodeCard = (timecode, id, scriptId, type = null, base64Map = nul
             />
           </div>
         )}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', alignItems: 'flex-start', padding: '4px 8px' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', alignItems: 'flex-start', padding: '10px 8px 6px 8px' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: "space-between", width: "100%", padding: '0 8px 0 0' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <p style={{ margin: 0, fontSize: '13px', lineHeight: '13px', fontWeight: '800', color: 'rgb(14, 11, 25)' }}>{id + 1}</p>
-              <div style={{ width: '2px', height: '15px', backgroundColor: 'rgb(14, 11, 25)' }}></div>
+              <p style={{ margin: "0 0 3px 0", fontSize: '13px', lineHeight: '13px', fontWeight: '800', color: 'rgb(14, 11, 25)' }}>{id + 1}</p>
+              <div style={{ width: '2px', height: '12px', backgroundColor: 'rgb(14, 11, 25)' }}></div>
               {timecode.type && <Image src={`/${typeToIcon(timecode.type)}`} alt="Type icon" width={16} style={{ display: 'block' }} />}
-            </div>
-            <div style={{ marginBottom: "6px" }}>
-              <ReactStars
-                value={timecode.rating}
-                count={3}
-                onChange={(newRating) => ratingChanged(timecode, newRating)}
-                size={20}
-                color1={"#b4b4b4"}
-                color2={"#ffd700"}
-              />
             </div>
           </div>
           {type !== "AV" && timecode.text &&
@@ -435,7 +421,7 @@ const renderTimecodeCard = (timecode, id, scriptId, type = null, base64Map = nul
           }
         </div>
         {type !== "AV" &&
-          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '1px', padding: '0 16px', fontSize: '9px', fontWeight: '600', color: 'rgb(14, 11, 25)' }}>
+          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '2px', padding: '0 16px', fontSize: '9px', fontWeight: '600', color: 'rgb(14, 11, 25)' }}>
             <span>{formatTimecode(timecode.inTime)}</span>
             <span>·</span>
             <span>{formatTimecode(timecode.outTime)}</span>

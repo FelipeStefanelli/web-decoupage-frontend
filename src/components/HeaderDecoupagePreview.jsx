@@ -353,6 +353,8 @@ const HeaderDecoupagePreview = ({ contentRef, data, projectName, exportDate }) =
             >
               <div style={{ fontSize: 12, color: "#6b7280" }}>Projeto</div>
               <div style={{ fontSize: 12, color: "#111827", fontWeight: 600 }}>{projectName}</div>
+              <div style={{ fontSize: 12, color: "#6b7280" }}>Exportado por</div>
+              <div style={{ fontSize: 12, color: "#111827", fontWeight: 600 }}>Sara Augusto</div>
               <div style={{ fontSize: 12, color: "#6b7280" }}>Data de exportação</div>
               <div style={{ fontSize: 12, color: "#111827", fontWeight: 600 }}>{exportDate}</div>
             </div>
@@ -459,8 +461,8 @@ const HeaderDecoupagePreview = ({ contentRef, data, projectName, exportDate }) =
                               gap: "6px",
                             }}
                           >
-                            <span style={{ fontSize: "15px", lineHeight: "15px" }}>{id + 1}</span>
-                            <div style={{ width: "2px", height: "15px", backgroundColor: "rgb(14, 11, 25)" }} />
+                            <span style={{ margin: "0 0 3px 0", fontSize: "13px", lineHeight: "13px", fontWeight: '800', color: 'rgb(14, 11, 25)' }}>{id + 1}</span>
+                            <div style={{ width: "2px", height: "12px", backgroundColor: "rgb(14, 11, 25)" }} />
                             {timecode.type !== "" &&
                               <Image
                                 src={
@@ -524,7 +526,7 @@ const HeaderDecoupagePreview = ({ contentRef, data, projectName, exportDate }) =
                           display: "flex",
                           alignItems: "center",
                           justifyContent: "flex-end",
-                          gap: "1px",
+                          gap: "2px",
                           padding: "0 16px",
                           fontSize: "10px",
                           fontWeight: 600,
