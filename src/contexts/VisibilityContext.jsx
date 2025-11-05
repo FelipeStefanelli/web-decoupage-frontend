@@ -1,6 +1,5 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
 
-// Defina as chaves para as visualizações que você quer controlar
 const visibilityKeys = [
   'classification-view',
   'description-view',
@@ -10,12 +9,9 @@ const visibilityKeys = [
   'audios-view'
 ];
 
-// Criação do contexto
 const VisibilityContext = createContext();
 
-// Provider para fornecer o estado
 export const VisibilityProvider = ({ children }) => {
-  // Inicializa o estado de cada view como 'show'
   const [views, setViews] = useState(
     visibilityKeys.reduce((acc, key) => {
       acc[key] = 'show';
@@ -30,19 +26,19 @@ export const VisibilityProvider = ({ children }) => {
 
   useEffect(() => {
     const savedName = localStorage.getItem('project-name');
-  
+
     async function validateProjectName(name) {
       try {
         const res = await fetch(`${apiUrl ? apiUrl : 'http://localhost:4000'}/api/backups`, {
-            method: 'GET',
-            headers: {
-                'ngrok-skip-browser-warning': '1',
-                'Accept': 'application/json'
-            }
+          method: 'GET',
+          headers: {
+            'ngrok-skip-browser-warning': '1',
+            'Accept': 'application/json'
+          }
         });
         const data = await res.json();
         const exists = data.backups.some(b => b.name === name);
-  
+
         if (!exists) {
           localStorage.removeItem('project-name');
           setProjectName(null);
@@ -53,7 +49,7 @@ export const VisibilityProvider = ({ children }) => {
         setProjectName(null);
       }
     }
-  
+
     if (savedName && savedName !== 'null') {
       validateProjectName(savedName);
     } else {
@@ -61,7 +57,6 @@ export const VisibilityProvider = ({ children }) => {
     }
   }, []);
 
-  // Função para alternar a visibilidade de uma chave
   const toggleView = (key) => {
     setViews((prevViews) => ({
       ...prevViews,
@@ -70,8 +65,8 @@ export const VisibilityProvider = ({ children }) => {
   };
 
   return (
-    <VisibilityContext.Provider 
-      value={{ 
+    <VisibilityContext.Provider
+      value={{
         views,
         toggleView,
         projectName,
@@ -89,5 +84,4 @@ export const VisibilityProvider = ({ children }) => {
   );
 };
 
-// Hook para acessar o contexto
 export const useVisibility = () => useContext(VisibilityContext);

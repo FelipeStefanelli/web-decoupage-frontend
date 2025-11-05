@@ -1,15 +1,15 @@
-import {useEffect, useMemo, useRef, useState} from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
-function formatHHMMSS(sec=0){
+function formatHHMMSS(sec = 0) {
   if (!Number.isFinite(sec)) sec = 0;
   const s = Math.max(0, Math.floor(sec));
-  const h = String(Math.floor(s/3600)).padStart(2,"0");
-  const m = String(Math.floor((s%3600)/60)).padStart(2,"0");
-  const ss = String(s%60).padStart(2,"0");
-  return h+":"+m+":"+ss;
+  const h = String(Math.floor(s / 3600)).padStart(2, "0");
+  const m = String(Math.floor((s % 3600) / 60)).padStart(2, "0");
+  const ss = String(s % 60).padStart(2, "0");
+  return h + ":" + m + ":" + ss;
 }
 
-export default function CustomPlayer({ videoRef, src, type="video/mp4" }) {
+export default function CustomPlayer({ videoRef, src, type = "video/mp4" }) {
   const localRef = useRef(null);
   const ref = videoRef ?? localRef;
 
@@ -47,14 +47,14 @@ export default function CustomPlayer({ videoRef, src, type="video/mp4" }) {
 
   const toggle = async () => {
     const el = ref.current; if (!el) return;
-    if (el.paused || el.ended) { try { await el.play(); } catch {} }
-    else { try { el.pause(); } catch {} }
+    if (el.paused || el.ended) { try { await el.play(); } catch { } }
+    else { try { el.pause(); } catch { } }
   };
 
   const seekTo = (t) => {
     const el = ref.current; if (!el) return;
     const next = Math.min(Math.max(0, t), Number.isFinite(dur) ? dur : t);
-    try { el.currentTime = next; } catch {}
+    try { el.currentTime = next; } catch { }
   };
 
   const seekBy = (delta) => seekTo(cur + delta);
@@ -84,9 +84,9 @@ export default function CustomPlayer({ videoRef, src, type="video/mp4" }) {
     const wrap = containerRef.current;
     if (!wrap) return;
     if (document.fullscreenElement) {
-      await document.exitFullscreen().catch(()=>{});
+      await document.exitFullscreen().catch(() => { });
     } else {
-      await wrap.requestFullscreen().catch(()=>{});
+      await wrap.requestFullscreen().catch(() => { });
     }
   };
 
@@ -105,7 +105,7 @@ export default function CustomPlayer({ videoRef, src, type="video/mp4" }) {
         // evita sobreposições de UI
         style={{ width: "100%", display: "block", borderRadius: 8, background: "black" }}
       >
-        <source src={src} type={type}/>
+        <source src={src} type={type} />
       </video>
 
       {/* Barra de controles SEMPRE visível */}
@@ -140,15 +140,15 @@ export default function CustomPlayer({ videoRef, src, type="video/mp4" }) {
           {formatHHMMSS(dur)}
         </span>
 
-        <div style={{ display:"flex", alignItems:"center", gap:6 }}>
-          <span style={{ fontSize:12 }}>🔊</span>
+        <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+          <span style={{ fontSize: 12 }}>🔊</span>
           <input
             type="range"
             min={0}
             max={1}
             step="0.01"
             value={vol}
-            onChange={(e)=>changeVolume(parseFloat(e.target.value))}
+            onChange={(e) => changeVolume(parseFloat(e.target.value))}
           />
         </div>
 

@@ -23,16 +23,13 @@ const TimecodeInput = ({
     const newValue = e.target.value;
     setProvValue(newValue);
     updateTimecode({ ...timecode, text: newValue });
-    // vai disparar o useEffect também, mas não faz mal repetir
     adjustHeight();
   };
 
-  // sempre que o timecode mudar, atualizo o provValue
   useLayoutEffect(() => {
     setProvValue(timecode.text);
   }, [timecode.text]);
 
-  // quando o conteúdo mudar e estivermos focados, ajusta a altura
   useEffect(() => {
     if (isFocused) adjustHeight();
   }, [provValue, isFocused]);

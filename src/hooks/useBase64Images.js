@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 
 // cache global pra não rebaixar a mesma imagem de novo
-const cache = new Map(); // key: timecode.id -> dataURL
+const cache = new Map();
 
 export function useBase64Images(timecodes = [], apiUrl) {
   const [map, setMap] = useState({});

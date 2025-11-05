@@ -14,11 +14,11 @@ const ScriptInput = ({ value, onChange, placeholder, id, readOnly }) => {
     const adjustHeight = () => {
         const textarea = textareaRef.current;
         if (textarea) {
-          textarea.style.height = 'auto'; // reset para pegar novo scrollHeight
-          textarea.style.height = `${textarea.scrollHeight}px`;
+            textarea.style.height = 'auto';
+            textarea.style.height = `${textarea.scrollHeight}px`;
         }
     };
-    
+
     return (
         <div
             style={{
@@ -27,16 +27,16 @@ const ScriptInput = ({ value, onChange, placeholder, id, readOnly }) => {
                 borderLeft: '1px solid rgb(158, 156, 168)',
                 cursor: readOnly ? 'default' : 'text',
                 display: 'flex',
-                alignItems: 'center', // Garante que o span e textarea fiquem alinhados verticalmente
+                alignItems: 'center',
             }}
         >
             {readOnly ?
                 <span
                     style={{
-                        padding: '0px 8px', // Padding equivalente ao textarea
-                        marginLeft: '8px', // Margin para alinhar com o textarea
-                        lineHeight: '1.5', // Garante que o line-height seja consistente
-                        whiteSpace: 'pre-wrap', // Para manter quebras de linha
+                        padding: '0px 8px',
+                        marginLeft: '8px',
+                        lineHeight: '1.5',
+                        whiteSpace: 'pre-wrap',
                         color: 'black',
                         fontSize: '13px',
                     }}
@@ -65,7 +65,7 @@ const ScriptInput = ({ value, onChange, placeholder, id, readOnly }) => {
                         overflow: 'hidden',
                         color: 'black',
                         fontSize: '13px',
-                        padding: '0px', // Padding equivalente ao textarea
+                        padding: '0px',
                     }}
                     rows={1}
                     placeholder={placeholder}

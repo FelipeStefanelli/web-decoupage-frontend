@@ -293,7 +293,7 @@ const TimecodesSection = (props) => {
 
         const grid = event.currentTarget;
 
-        // ─── Auto-scroll ─────────────────────────────────────────────────────
+        // Auto-scroll
         const { top, bottom } = grid.getBoundingClientRect();
         const maxOffset = 140;       // até onde a zona de auto-scroll vale
         const y = event.clientY;
@@ -317,7 +317,7 @@ const TimecodesSection = (props) => {
             grid.scrollBy(0, speed);
         }
 
-        // ─── Drop-zone ───────────────────────────────────────────────────────
+        //  Drop-zone 
         const droppedPosition = getDropPosition(grid, event);
 
         // remove zona antiga
@@ -930,7 +930,7 @@ const TimecodesSection = (props) => {
                                                                 {script.timecodes.length === 0 ?
                                                                     <div
                                                                         id={`grid-scripts-${id}`}
-                                                                        style={{ position: 'relative', minHeight: '90px',  }}
+                                                                        style={{ position: 'relative', minHeight: '90px', }}
                                                                         onDragOver={handleDragOver}
                                                                         onDrop={handleDrop}
                                                                     >
@@ -977,7 +977,7 @@ const TimecodesSection = (props) => {
                                                             </div>
                                                         }
                                                     </div>
-                                                    <div style={{ width: "40%", display: 'flex', flexDirection: "column", gap: '8px', paddingLeft: "16px" , borderLeft: "1px solid #bdbdbdff" }}>
+                                                    <div style={{ width: "40%", display: 'flex', flexDirection: "column", gap: '8px', paddingLeft: "16px", borderLeft: "1px solid #bdbdbdff" }}>
                                                         {script.activeFields.includes('audio') && views['audio-view'] === 'show' &&
                                                             <div style={{ display: 'flex', alignItems: 'center', gap: '14px', padding: '9px 12px', border: '0.5px solid rgb(188, 188, 188)', borderRadius: '4px' }}>
                                                                 <Image src="/A.svg" alt="Trilha" width={16} height={16} style={{ width: "16px", height: "16px" }} />

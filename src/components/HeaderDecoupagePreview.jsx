@@ -211,7 +211,6 @@ const HeaderDecoupagePreview = ({ contentRef, data, projectName, exportDate }) =
   return (
     <div style={{ width: '100%', height: 'calc(100vh - 196px)', overflow: 'hidden' }}>
 
-      {/* barra de filtros (fora do PDF, mantida) */}
       <div
         style={{
           padding: '16px',
@@ -289,7 +288,6 @@ const HeaderDecoupagePreview = ({ contentRef, data, projectName, exportDate }) =
         </>
       </div>
 
-      {/* área de preview (fora do PDF, mantida) */}
       <div style={{ display: 'flex', width: '100%', height: 'calc(100% - 70px)' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%', height: '100%' }}>
           {loading ? (
@@ -310,35 +308,30 @@ const HeaderDecoupagePreview = ({ contentRef, data, projectName, exportDate }) =
         </div>
       </div>
 
-      {/* =========================
-           AQUI começa o CONTEÚDO do PDF (APENAS esta parte foi redesenhada)
-           ========================= */}
+      {/* ---------- CONTEÚDO do PDF ---------- */}
       <div
         ref={contentRef}
         style={{
-          background: "#f3f4f6",               // fundo neutro (não imprime no PDF, pq só a "página" é branca)
+          background: "#f3f4f6",
           fontFamily: "Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif",
           color: "#111827"
         }}
       >
-        {/* “Página” branca centralizada com cara de papel */}
         <div
           style={{
-            width: "794px",                    // ~A4 em px @96dpi
+            width: "794px", // ~A4 em px @96dpi
             margin: "0 auto",
             background: "#fff",
             borderRadius: "12px",
             overflow: "hidden"
           }}
         >
-          {/* Cabeçalho da decupagem */}
           <div style={{ padding: "24px 28px 12px", borderBottom: "2px solid #e5e7eb" }}>
             <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 16 }}>
               <h1 style={{ fontSize: 22, lineHeight: "26px", margin: 0, letterSpacing: ".3px" }}>DECUPAGEM</h1>
               {/**<span style={{ fontSize: 12, color: "#6b7280" }}>{exportDate}</span>**/}
             </div>
 
-            {/* Metadados bonitos */}
             <div
               style={{
                 display: "grid",
@@ -360,7 +353,6 @@ const HeaderDecoupagePreview = ({ contentRef, data, projectName, exportDate }) =
             </div>
           </div>
 
-          {/* Seção dos CARDS (não alterados), com grid responsiva para 3 colunas */}
           <div style={{ padding: "16px 20px 24px" }}>
             {grouped.map((group, groupId) => (
               <div
@@ -371,7 +363,7 @@ const HeaderDecoupagePreview = ({ contentRef, data, projectName, exportDate }) =
                   gridTemplateColumns: "repeat(3, 1fr)",
                   gap: "12px",
                   paddingTop: "12px",
-                  pageBreakInside: "avoid",     // evita quebra do bloco entre páginas
+                  pageBreakInside: "avoid",
                   breakInside: "avoid"
                 }}
               >
@@ -430,7 +422,6 @@ const HeaderDecoupagePreview = ({ contentRef, data, projectName, exportDate }) =
                         />
                       </div>
 
-                      {/* ======= CARDS (conteúdo interno inalterado) ======= */}
                       <div
                         style={{
                           display: "flex",
@@ -568,7 +559,6 @@ const HeaderDecoupagePreview = ({ contentRef, data, projectName, exportDate }) =
                           {renderFilename(timecode.mediaName)}
                         </p>
                       </div>
-                      {/* ======= fim dos CARDS (inalterados) ======= */}
                     </div>
                   </div>
                 ))}
@@ -576,11 +566,7 @@ const HeaderDecoupagePreview = ({ contentRef, data, projectName, exportDate }) =
             ))}
           </div>
         </div>
-        {/* fim da “página” */}
       </div>
-      {/* =========================
-           FIM do conteúdo do PDF
-           ========================= */}
     </div>
   );
 };

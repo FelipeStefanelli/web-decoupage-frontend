@@ -150,7 +150,7 @@ const TimecodeType = ({ id, timecode, setActiveMenu, updateTimecode, activeMenu,
             {(activeMenu === timecode.id || !timecode.type) && !readOnly && (
                 <div
                     style={{
-                        height: cardType === 'script' ?  "24px" :  "28px",
+                        height: cardType === 'script' ? "24px" : "28px",
                         width: "96px",
                         display: "flex",
                         backgroundColor: "white"

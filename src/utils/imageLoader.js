@@ -1,8 +1,8 @@
 // utils/imageLoader.js (JS puro)
-const doneCache = new Map();        // id -> blobURL
-const inFlight = new Map();         // id -> Promise<string>
-const lru = [];                     // ordem de uso
-const MAX = 200;                    // máx imagens no cache
+const doneCache = new Map();
+const inFlight = new Map();
+const lru = []; // ordem de uso
+const MAX = 200; // máximo de imagens no cache
 
 function touch(id) {
   const i = lru.indexOf(id);
@@ -42,7 +42,7 @@ async function downscaleToBlob(blob, targetH) {
   const mimePreferred = supportsWebP() ? 'image/webp' : 'image/jpeg';
   const quality = 0.88;
 
-  // 1) Tenta redimensionar já no createImageBitmap (Chrome/Edge)
+  // Tenta redimensionar já no createImageBitmap (Chrome/Edge)
   let bmp = null;
   try {
     bmp = await createImageBitmap(blob, { resizeHeight: targetH, resizeQuality: 'high' });

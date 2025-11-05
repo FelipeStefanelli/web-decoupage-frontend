@@ -34,7 +34,7 @@ export default function Header(props) {
                 const date = now.toISOString().slice(0, 10);
                 const time = now.toTimeString().slice(0, 5).replace(':', '-');
                 const filename = `${pdfController === 'decoupage' ? 'Decupagem - ' : 'Roteiro - '}${projectName} - ${date} ${time}.pdf`;
-    
+
                 const options = {
                     filename,
                     html2canvas: { scale: 2 },
@@ -44,7 +44,7 @@ export default function Header(props) {
                         orientation: 'portrait'
                     },
                     pagebreak: {
-                        mode: ['css','legacy'],           // primeiro tenta CSS; se falhar, usa heurística antiga
+                        mode: ['css', 'legacy'],           // primeiro tenta CSS; se falhar, usa heurística antiga
                         before: ['.page-break-avoid'],    // força quebra ANTES do bloco, se não couber
                         avoid: ['.page-break-avoid']      // tenta manter o bloco inteiro na página
                     }
@@ -54,7 +54,7 @@ export default function Header(props) {
                     .from(contentRef.current.children[0].children[0])
                     .set(options) // Define as opções
                     .save(); // Salva o arquivo gerado
-    
+
                 toast.success('Download concluido com sucesso!')
                 setPdfController(null);
             };
@@ -65,15 +65,15 @@ export default function Header(props) {
         if (!projectName) {
             toast.warn("Nome do projeto inválido");
             return;
-            }
+        }
 
-            try {
+        try {
             // Ajuste a base URL do seu servidor (http://localhost:4000, por exemplo)
             const apiBase = apiUrl ? apiUrl : 'http://localhost:4000';
             const encodedName = encodeURIComponent(projectName);
             const url = `${apiBase}/api/backups/download/${encodedName}`;
 
-            const response = await fetch(url, { 
+            const response = await fetch(url, {
                 method: 'GET',
                 headers: {
                     'ngrok-skip-browser-warning': '1',
@@ -82,9 +82,9 @@ export default function Header(props) {
 
             if (!response.ok) {
                 if (response.status === 404) {
-                toast.error(`Backup "${projectName}" não encontrado no servidor.`);
+                    toast.error(`Backup "${projectName}" não encontrado no servidor.`);
                 } else {
-                toast.error(`Falha ao baixar backup: HTTP ${response.status}`);
+                    toast.error(`Falha ao baixar backup: HTTP ${response.status}`);
                 }
                 return;
             }
@@ -110,7 +110,7 @@ export default function Header(props) {
 
             URL.revokeObjectURL(downloadUrl);
             toast.success(`Backup "${projectName}" baixado com sucesso.`);
-            } catch (err) {
+        } catch (err) {
             console.error("Erro ao baixar backup:", err);
             toast.error("Ocorreu um erro inesperado ao baixar o backup.");
         }
@@ -134,8 +134,8 @@ export default function Header(props) {
         setModalAnimation(false);
         // Espera a animação terminar antes de esconder
         setTimeout(() => {
-          setModalVisible(false);
-          setshowPreview(null);
+            setModalVisible(false);
+            setshowPreview(null);
         }, 200); // tempo igual à transição
     };
 
@@ -151,13 +151,13 @@ export default function Header(props) {
 
     return (
         <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '1rem',
-            padding: '20px',
-            backgroundColor: '#0a0a0a'
-          }}
+            style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '1rem',
+                padding: '20px',
+                backgroundColor: '#0a0a0a'
+            }}
         >
             <p
                 style={{
@@ -178,7 +178,7 @@ export default function Header(props) {
                         :
                         { borderBottom: "2px solid transparent", padding: "3px 8px", textDecoration: 'none', color: 'rgb(255, 255, 255)', marginRight: '6px' }
                 }
-                onClick={() => {closeModal()}}
+                onClick={() => { closeModal() }}
             >
                 Decupagem
             </Link>
@@ -190,12 +190,12 @@ export default function Header(props) {
                         :
                         { borderBottom: "2px solid transparent", padding: "3px 8px", textDecoration: 'none', color: 'rgb(255, 255, 255)', marginLeft: '6px' }
                 }
-                onClick={() => {closeModal()}}
+                onClick={() => { closeModal() }}
             >
                 Roteiro
             </Link>
             <div className="project-name-display">
-                <p 
+                <p
                     style={{
                         margin: 0,
                         color: 'white',
@@ -241,14 +241,14 @@ export default function Header(props) {
             {/* Modal de Visualização do PDF */}
             {modalVisible && (
                 <div style={{
-                  position: 'fixed',
-                  top: 77,
-                  left: 0,
-                  width: '100%',
-                  height: '100%',
-                  //backgroundColor: 'rgba(0, 0, 0, 0.5)',
-                  display: 'flex',
-                  zIndex: 50
+                    position: 'fixed',
+                    top: 77,
+                    left: 0,
+                    width: '100%',
+                    height: '100%',
+                    //backgroundColor: 'rgba(0, 0, 0, 0.5)',
+                    display: 'flex',
+                    zIndex: 50
                 }}>
                     <div style={{
                         position: 'absolute',
@@ -312,7 +312,7 @@ export default function Header(props) {
                                     </div>
                                 }
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '24px', paddingRight: '12px' }}>
-                                    <button  style={{ all: 'unset', cursor: 'pointer' }}>
+                                    <button style={{ all: 'unset', cursor: 'pointer' }}>
                                         <Image
                                             src="/close-white.svg"
                                             alt="Close icon"

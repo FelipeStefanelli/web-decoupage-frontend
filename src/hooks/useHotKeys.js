@@ -1,4 +1,3 @@
-// useHotkeys.js
 import { useEffect, useRef } from "react";
 
 export function useHotkeys(
@@ -44,8 +43,8 @@ export function useHotkeys(
       }
     };
 
-    const opts = { capture: true };          // mantém captura
-    document.addEventListener("keydown", onKeyDown, opts); // ✅ só document
+    const opts = { capture: true };
+    document.addEventListener("keydown", onKeyDown, opts);
     return () => {
       document.removeEventListener("keydown", onKeyDown, opts);
     };

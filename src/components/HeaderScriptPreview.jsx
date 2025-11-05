@@ -14,7 +14,6 @@ const HeaderScriptPreview = ({ contentRef, data, projectName, exportDate, views 
 
   const { apiUrl } = useVisibility();
 
-  // ------- INÍCIO: BLOCO ALTERADO (carregamento de imagens otimizado) -------
   const blobUrlCache = useRef(new Map());
 
   useEffect(() => {
@@ -96,7 +95,6 @@ const HeaderScriptPreview = ({ contentRef, data, projectName, exportDate, views 
       }
       setIsDataEmpty(false);
 
-      // achata todos os timecodes com imagem
       const allTimecodes = [];
       for (const scene of scenes) {
         for (const tc of scene.timecodes || []) {
@@ -105,7 +103,7 @@ const HeaderScriptPreview = ({ contentRef, data, projectName, exportDate, views 
       }
 
       const map = {};
-      const pool = 6; // concorrência
+      const pool = 6;
       let i = 0;
 
       async function worker() {
@@ -147,7 +145,6 @@ const HeaderScriptPreview = ({ contentRef, data, projectName, exportDate, views 
 
     loadImagesAsBlobUrls();
   }, [data, apiUrl]);
-  // ------- FIM: BLOCO ALTERADO (carregamento de imagens otimizado) -------
 
   const generatePreview = useCallback(async () => {
     if (!contentRef.current) return
@@ -205,9 +202,7 @@ const HeaderScriptPreview = ({ contentRef, data, projectName, exportDate, views 
         }
       </div>
 
-      {/* =========================
-          A PARTIR DAQUI: SÓ o CONTEÚDO DENTRO DO PDF (contentRef) FOI ESTILIZADO
-          ========================= */}
+      {/* ------- CONTEÚDO do PDF ------- */}
       <div
         ref={contentRef}
         style={{
@@ -216,7 +211,6 @@ const HeaderScriptPreview = ({ contentRef, data, projectName, exportDate, views 
           color: "#111827"
         }}
       >
-        {/* “Página” branca centralizada com cara de papel */}
         <div
           style={{
             width: "794px",                    // ~A4 em px @96dpi
@@ -233,7 +227,6 @@ const HeaderScriptPreview = ({ contentRef, data, projectName, exportDate, views 
               {/**<span style={{ fontSize: 12, color: "#6b7280" }}>{exportDate}</span>**/}
             </div>
 
-            {/* Metadados bonitos */}
             <div
               style={{
                 display: "grid",
@@ -255,7 +248,6 @@ const HeaderScriptPreview = ({ contentRef, data, projectName, exportDate, views 
             </div>
           </div>
 
-          {/* Seções de cenas (mantendo cards e campos) */}
           <div style={{ padding: "16px 20px 24px" }}>
             {data?.script?.map((script, id) => (
               <section
@@ -306,7 +298,7 @@ const HeaderScriptPreview = ({ contentRef, data, projectName, exportDate, views 
                       {script.activeFields.includes('takes') && views['takes-view'] === 'show' && renderTakes(script, id, base64Map)}
                     </div>
                     {/* Coluna direita */}
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: 8, paddingLeft: "16px" , borderLeft: "1px solid #bdbdbdff" }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 8, paddingLeft: "16px", borderLeft: "1px solid #bdbdbdff" }}>
                       {script.activeFields.includes('audio') && views['audio-view'] === 'show' && (
                         <div style={inputBoxStyle}>
                           <Image src="/A-active.svg" alt="Trilha" width={18} />
@@ -328,11 +320,7 @@ const HeaderScriptPreview = ({ contentRef, data, projectName, exportDate, views 
             ))}
           </div>
         </div>
-        {/* fim da “página” */}
       </div>
-      {/* =========================
-          FIM do conteúdo estilizado do PDF
-          ========================= */}
     </div>
   );
 };

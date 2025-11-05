@@ -26,7 +26,7 @@ const HeaderMenuOptions = ({
         overflowY: 'auto',
         overflowX: 'hidden',
       }}
-       className="fade-in"
+      className="fade-in"
     >
       {/* Coluna 1 */}
       <div

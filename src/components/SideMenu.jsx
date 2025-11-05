@@ -122,7 +122,7 @@ export default function SideMenu() {
           return;
         }
         const form = new FormData();
-        form.append('backup', file);  // só o arquivo ZIP
+        form.append('backup', file);
 
         try {
           const res = await fetch(`${apiUrl ? apiUrl : 'http://localhost:4000'}/api/importFolder`, {
@@ -133,7 +133,7 @@ export default function SideMenu() {
 
           if (res.ok && result.success) {
             toast.success(result.message || 'Projeto importado com sucesso!');
-            await fetchBackups();  // atualiza lista de backups na UI
+            await fetchBackups();
             console.log(result.name)
             setProjectName(result.name);
             localStorage.setItem("project-name", result.name);
@@ -147,7 +147,7 @@ export default function SideMenu() {
         }
       } else {
         const form = new FormData();
-        form.append('backup', file);  // só o arquivo ZIP
+        form.append('backup', file);
 
         try {
           const res = await fetch(`${apiUrl ? apiUrl : 'http://localhost:4000'}/api/importFolder`, {
@@ -158,7 +158,7 @@ export default function SideMenu() {
 
           if (res.ok && result.success) {
             toast.success(result.message || 'Projeto importado com sucesso!');
-            await fetchBackups();  // atualiza lista de backups na UI
+            await fetchBackups();
             console.log(result.name)
             setProjectName(result.name);
             localStorage.setItem("project-name", result.name);

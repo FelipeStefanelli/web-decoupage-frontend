@@ -50,17 +50,17 @@ function App() {
   const [unlocked, setUnlocked] = useState(true);
   return (
     <VisibilityProvider>
-    <HashRouter>
-      {!unlocked && <LockScreen onUnlock={() => setUnlocked(true)} />}
-      {unlocked && (
-        <>
-          <Header />
-          <SideMenu />
-          <AnimatedRoutes />
-        </>
-      )}
-    </HashRouter>
-  </VisibilityProvider>
+      <HashRouter>
+        {!unlocked && <LockScreen onUnlock={() => setUnlocked(true)} />}
+        {unlocked && (
+          <>
+            <Header />
+            <SideMenu />
+            <AnimatedRoutes />
+          </>
+        )}
+      </HashRouter>
+    </VisibilityProvider>
   );
 }
 

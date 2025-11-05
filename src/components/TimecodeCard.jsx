@@ -27,7 +27,7 @@ const TimecodeCard = ({
 }) => {
   const { apiUrl } = useVisibility();
 
-  // ===== IMAGEM OTIMIZADA + LOADING =========================================
+  // IMAGEM OTIMIZADA + LOADING
   const [resolvedSrc, setResolvedSrc] = useState(null);
   const [imgLoading, setImgLoading] = useState(!!timecode?.imageUrl);
 
@@ -109,14 +109,13 @@ const TimecodeCard = ({
       const imgId = timecode.id;
       const fullUrl = `${apiUrl ? apiUrl : "http://localhost:4000"}${timecode.imageUrl}`;
 
-      // 1) veio do pai (compatível com seu fluxo)
       if (base64Map && base64Map[imgId]) { if (alive) { setResolvedSrc(base64Map[imgId]); setImgLoading(false); } return; }
 
-      // 2) cache global
+      // cache global
       const cached = imageBlobCache.get(imgId);
       if (cached) { if (alive) { setResolvedSrc(cached); setImgLoading(false); } return; }
 
-      // 3) fetch + compress + Blob URL
+      // fetch + compress + Blob URL
       try {
         setImgLoading(true);
         const res = await fetch(fullUrl, {
@@ -132,14 +131,13 @@ const TimecodeCard = ({
         if (alive) { setResolvedSrc(url); setImgLoading(false); }
       } catch (e) {
         console.warn('Erro carregando imagem', fullUrl, e);
-        if (alive) { setResolvedSrc(fullUrl); setImgLoading(false); } // fallback
+        if (alive) { setResolvedSrc(fullUrl); setImgLoading(false); }
       }
     }
 
     resolveImage();
     return () => { alive = false; };
   }, [timecode?.id, timecode?.imageUrl, apiUrl, base64Map]);
-  // ==========================================================================
 
   const src =
     resolvedSrc ||
@@ -190,7 +188,7 @@ const TimecodeCard = ({
       {((timecode.imageUrl && cardType !== 'script') || (cardType === "script" && timecode.type !== 'A')) && (
         <div
           style={{
-            position: 'relative',            // contexto pro overlay
+            position: 'relative',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
@@ -329,24 +327,24 @@ const TimecodeCard = ({
                 }}
               />
             </div>
-              <p
-                style={{
-                  fontSize: cardType === 'script' ? '9px' : '10px',
-                  fontWeight: '500',
-                  lineHeight: '12px',
-                  letterSpacing: '0.1px',
-                  textAlign: 'end',
-                  color: 'black',
-                  maxWidth: 'calc(100% - 32px)',
-                  whiteSpace: 'nowrap',
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis',
-                  margin: 0
-                }}
-                title={timecode.mediaName}
-              >
-                {renderFilename(timecode.mediaName)}
-              </p>
+            <p
+              style={{
+                fontSize: cardType === 'script' ? '9px' : '10px',
+                fontWeight: '500',
+                lineHeight: '12px',
+                letterSpacing: '0.1px',
+                textAlign: 'end',
+                color: 'black',
+                maxWidth: 'calc(100% - 32px)',
+                whiteSpace: 'nowrap',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                margin: 0
+              }}
+              title={timecode.mediaName}
+            >
+              {renderFilename(timecode.mediaName)}
+            </p>
           </div>
         </>
       }

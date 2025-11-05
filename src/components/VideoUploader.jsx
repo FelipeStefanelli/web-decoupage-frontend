@@ -50,7 +50,7 @@ const VideoUploader = () => {
 
       const isDifferent = file !== originalFilePath;
       if (isDifferent) {
-        resetVideoState(); // limpa apenas se for novo
+        resetVideoState();
       }
       const fileType = file.type.startsWith('audio/') ? 'audio' : file.type.startsWith('video/') ? 'video' : undefined;
       const videoURL = URL.createObjectURL(file);
@@ -62,7 +62,6 @@ const VideoUploader = () => {
       const controller = new AbortController();
       transcriptionController.current = controller;
 
-      // Transcreve direto com path do arquivo
       handleTranscription(file, controller.signal);
     }
 
@@ -250,12 +249,11 @@ const VideoUploader = () => {
       });
 
       if (!res.ok) throw new Error();
-      // o endpoint irá forçar download do arquivo convertido
       const blob = await res.blob();
       const url = URL.createObjectURL(blob);
 
       const a = document.createElement('a');
-      // tenta pegar nome enviado pelo header; se não, cai em default
+      // tenta pegar nome enviado pelo header, se não, cai em default
       const disposition = res.headers.get('Content-Disposition') || '';
       const match = disposition.match(/filename="?(.+)"?/);
       const filename = match ? match[1] : `video-convertido.${format}`;
@@ -355,7 +353,6 @@ const VideoUploader = () => {
   }, []);
   const seekBy = useCallback((delta) => {
     console.log(`click ${delta}`)
-    // pega o elemento certo
     const el = mediaType === 'audio' ? audioRef.current : videoRef.current;
     if (!el) return;
 
@@ -413,15 +410,15 @@ const VideoUploader = () => {
 
     const st = revStateRef.current;
     if (st.active) {
-      st.idx = (st.idx + 1) % SPEEDS.length;     // 1→2→4→1
-      setRevSpeed(SPEEDS[st.idx]);               // mostra ⏪ Nx
+      st.idx = (st.idx + 1) % SPEEDS.length;
+      setRevSpeed(SPEEDS[st.idx]);
       return;
     }
 
     st.active = true;
     st.idx = 0;
     st.lastTs = 0;
-    setRevSpeed(SPEEDS[st.idx]);                 // ⏪ 1x
+    setRevSpeed(SPEEDS[st.idx]);
 
     const step = (ts) => {
       const s = revStateRef.current;
@@ -452,12 +449,11 @@ const VideoUploader = () => {
     const el = getMediaEl();
     if (!el) return;
 
-    // sair do reverse e limpar indicador ⏪
+    // sair do reverse e limpar indicador
     stopReverse();
 
-    // cicla 1→2→4→1
     if (fwdIdxRef.current === -1) {
-      fwdIdxRef.current = 0;                      // começa em 1x
+      fwdIdxRef.current = 0; // começa em 1x
     } else {
       fwdIdxRef.current = (fwdIdxRef.current + 1) % SPEEDS.length;
     }
@@ -465,13 +461,13 @@ const VideoUploader = () => {
     const rate = SPEEDS[fwdIdxRef.current];
     el.playbackRate = rate;
 
-    setFwdSpeed(rate);                             // <-- mostra ▶️ Nx
+    setFwdSpeed(rate);
 
     const p = el.play?.();
     if (p && typeof p.then === 'function') p.catch(() => { });
   }, [stopForward, stopReverse]);
 
-  // opcional: ao pausar manualmente, desligue estados de shuttle/aceleração
+  // ao pausar manualmente, desliga estados de shuttle/aceleração
   const resetRates = useCallback(() => {
     const el = getMediaEl();
     if (el) el.playbackRate = 1;
@@ -481,7 +477,6 @@ const VideoUploader = () => {
 
   }, [mediaType, stopReverse, stopForward]);
 
-  // seu toggle atual, adicionando reset quando pausar
   const togglePlayPause = useCallback(() => {
     const el = mediaType === 'audio' ? audioRef.current : videoRef.current;
     if (!el) return;
@@ -491,11 +486,10 @@ const VideoUploader = () => {
       if (p && typeof p.then === 'function') p.catch(() => { });
     } else {
       try { el.pause?.(); } catch { }
-      resetRates(); // <- volta playbackRate pra 1 e desliga reverse
+      resetRates();
     }
   }, [mediaType, resetRates]);
 
-  // limpesa ao desmontar
   useEffect(() => {
     return () => {
       resetRates();
@@ -529,7 +523,7 @@ const VideoUploader = () => {
       togglePlayPause();
     };
 
-    // captura pra vencer handlers nativos de controles
+    // captura pra sobrepor handlers nativos de controles
     window.addEventListener("keyup", onKeyUp, true);
     document.addEventListener("keyup", onKeyUp, true);
     return () => {
@@ -661,7 +655,7 @@ const VideoUploader = () => {
       </div>
       {showCropModal && (
         <div
-          onClick={() => setShowCropModal(false)} // fecha ao clicar fora
+          onClick={() => setShowCropModal(false)}
           style={{
             position: 'fixed',
             top: 0,
@@ -677,7 +671,7 @@ const VideoUploader = () => {
           }}
         >
           <div
-            onClick={(e) => e.stopPropagation()} // evita fechar ao clicar dentro
+            onClick={(e) => e.stopPropagation()}
             style={{
               position: 'relative',
               backgroundColor: 'white',
@@ -691,7 +685,6 @@ const VideoUploader = () => {
               padding: '1rem',
             }}
           >
-            {/* Botão de fechar */}
             <Image
               src="/close-white.svg"
               alt="Close icon"
@@ -700,14 +693,13 @@ const VideoUploader = () => {
               style={{ width: "32px", height: "32px", cursor: 'pointer' }}
               onClick={() => setShowCropModal(false)}
             />
-            {/* Editor de imagem */}
             <ImageEditor
               imageSrc={selectedImage}
               onApplyCrop={async (blob) => {
                 const file = new File([blob], selectedImageName || 'imagem-cortada.png', {
                   type: 'image/png',
                 });
-                await handleImageImport(file); // <-- passe o File diretamente
+                await handleImageImport(file);
                 setShowCropModal(false);
               }}
             />
@@ -725,7 +717,6 @@ const VideoUploader = () => {
                 controlsList="nodownload noplaybackrate"
                 disablePictureInPicture
                 disableRemotePlayback
-                // iOS Safari (AirPlay):
                 x-webkit-airplay="deny"
                 tabIndex={-1}
                 onFocus={blurNextTick}
